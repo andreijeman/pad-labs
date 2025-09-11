@@ -1,4 +1,4 @@
-﻿namespace MessageBroker;
+﻿namespace DistributedSystem.Broker;
 
 public interface IBroker
 {

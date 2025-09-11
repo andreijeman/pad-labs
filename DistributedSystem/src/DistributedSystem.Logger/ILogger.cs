@@ -1,4 +1,4 @@
-﻿namespace Logger;
+﻿namespace DistributedSystem.Logger;
 public interface ILogger
 {
     void LogInfo(string message);
