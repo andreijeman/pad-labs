@@ -2,12 +2,12 @@
 
 namespace DistributedSystem.Network;
 
-public class SocketPostman<TPacket> : IPostman<TPacket>
+public class Postman<TPacket> : IPostman<TPacket>
 {
     private ICodec<TPacket> _codec;
     private byte[] _buffer;
 
-    public SocketPostman(ICodec<TPacket> codec, int bufferSize = 1024)
+    public Postman(ICodec<TPacket> codec, int bufferSize = 1024)
     {
         _codec = codec;
         _buffer = new byte[bufferSize];
