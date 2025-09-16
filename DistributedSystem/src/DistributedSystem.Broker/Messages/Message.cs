@@ -2,6 +2,6 @@
 
 public class Message
 {
-    public string Type { get; set; } = null!;
-    public string Body { get; set; } = null!;
+    public required string Command { get; set; } 
+    public required string Body { get; set; }
 }
