@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DistributedSystem.Broker\DistributedSystem.Broker.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Logger\DistributedSystem.Logger.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Network\DistributedSystem.Network.csproj" />
+  </ItemGroup>
+
 </Project>
