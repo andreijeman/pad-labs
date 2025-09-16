@@ -5,6 +5,12 @@ namespace DistributedSystem.Broker;
 
 public class BrokerQueueItem
 {
-    public required Socket Sender { get; set; }
-    public required Message Message { get; set; }
+    public Socket Sender { get; }
+    public Message Message { get; }
+
+    public BrokerQueueItem(Socket sender, Message message)
+    {
+        Sender = sender;
+        Message = message;
+    }
 }

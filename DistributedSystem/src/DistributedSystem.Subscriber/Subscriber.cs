@@ -47,7 +47,7 @@ public class Subscriber : ISubscriber
 
     private async Task SubscribeAsync()
     {
-        var message = new Message { Type = SubscriberMessageType.SubscribeCommand, Body = _topic };
+        var message = new Message { Command = MessageCommand.Subscribe, Body = _topic };
         await _postman.SendPacketAsync(_socket, message);
     }
 
@@ -83,7 +83,7 @@ public class Subscriber : ISubscriber
     
     private async Task UnsubscribeAsync(string topic)
     {
-        var message = new Message { Type = SubscriberMessageType.UnsubscribeCommand, Body = topic };
+        var message = new Message { Command = MessageCommand.Unsubscribe, Body = topic };
         await _postman.SendPacketAsync(_socket, message);
     }
 
