@@ -95,6 +95,9 @@ public class Broker : IBroker
                     case MessageCommand.RegisterPublisher:
                         HandleRegisterPublisherCommand(item.Sender, item.Message.Body);
                         break;
+                    case MessageCommand.Publish:
+                        HandlePublishCommand(item.Sender, item.Message);
+                        break;
                 }
             }
         }
@@ -118,13 +121,16 @@ public class Broker : IBroker
         }
     }
     
-    
-    
     public void HandleRegisterPublisherCommand(Socket publisher, string publisherIdentifier)
     {
         if (_publisherSubscriberDict.TryAdd(publisher, new  List<Socket>()))
         {
             _identifierPublisherDict.Add(publisherIdentifier, publisher);
         }
+    }
+    
+    public void HandlePublishCommand(Socket publisher, Message message)
+    {
+        //todo
     }
 }
