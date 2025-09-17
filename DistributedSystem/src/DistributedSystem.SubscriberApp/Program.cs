@@ -1,21 +1,25 @@
-﻿using DistributedSystem.Logger;
+﻿using DistributedSystem.Broker.Messages;
+using DistributedSystem.Logger;
+using DistributedSystem.Network;
 using DistributedSystem.Subscriber;
-using System.Reflection.Metadata.Ecma335;
+using System.Net;
 
 Console.WriteLine("__ SUBSCRIBER __");
 
-Console.Write("Subscribe to topic: ");
-string topic;
+IPAddress ipAddress = InputValidator.ValidateIp("IP Broker: ");
+int port = InputValidator.ValidatePort("PORT Broker: ");
+string topic = InputValidator.ValidateTopic("Subscribe to topic: ");
 
-while(true)
+ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
+
+Configuration configuration = new Configuration()
 {
-    topic = Console.ReadLine();
-    if (!string.IsNullOrEmpty(topic)) break;
-    continue;
-}
+    IpAddress = ipAddress,
+    Port = port
+};
 
-ILogger logger = new ConsoleLogger();
-ISubscriber subscriber = new Subscriber(logger, topic);
+await subscriber.ConnectAsync(configuration);
 
-// TODO - Connect to broker
-// TODO - Receive from broker
+_ = Task.Run(subscriber.StartReceiveAsync);
+
+Console.ReadLine();
