@@ -13,14 +13,16 @@ public class Subscriber : ISubscriber
     private readonly Socket _socket;
 
     private bool isConnected = false;
-    private string _topic;
 
-    public Subscriber(IPostman<Message> postman, ILogger logger, string topic)
+    private string _topic = String.Empty;
+    private string _name;
+
+    public Subscriber(IPostman<Message> postman, ILogger logger, string name)
     {
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _postman = postman;
         _logger = logger;
-        _topic = topic;
+        _name = name;
     }
 
     public async Task ConnectAsync(Configuration configuration)
@@ -32,16 +34,22 @@ public class Subscriber : ISubscriber
 
             if (isConnected)
             {
-                await SubscribeAsync();
+                await AuthenticateAsync();
                 _logger.LogInfo("Connected to Broker");
             }
             else
                 _logger.LogError("Failed connection to Broker");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError($"Connection-Exeption {ex.Message}");
         }
+    }
+
+    private async Task AuthenticateAsync()
+    {
+        var message = new Message { Command = MessageCommand.Authenticate, Body = _name };
+        await _postman.SendPacketAsync(_socket, message);
     }
 
     private async Task SubscribeAsync()
@@ -58,7 +66,7 @@ public class Subscriber : ISubscriber
             {
                 Message message = await _postman.ReceivePacketAsync(_socket);
 
-                if (message is null)  break;
+                if (message is null) break;
 
                 MessageHandler.Handler(message);
             }
@@ -79,7 +87,7 @@ public class Subscriber : ISubscriber
         _topic = topic;
         await SubscribeAsync();
     }
-    
+
     private async Task UnsubscribeAsync(string topic)
     {
         var message = new Message { Command = MessageCommand.Unsubscribe, Body = topic };
@@ -90,13 +98,13 @@ public class Subscriber : ISubscriber
     {
         try
         {
-            if(isConnected)
+            if (isConnected)
             {
                 _socket.Shutdown(SocketShutdown.Both);
                 _logger.LogInfo($"Closing connection to {_socket.RemoteEndPoint}");
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError($"Connection-Exeption: {ex.Message}");
         }

@@ -12,8 +12,9 @@ public class Publisher : IPublisher
 
     private readonly Socket _socket;
     
-    public bool isConnected {  get; set; }
     private readonly string _topic;
+
+    public bool isConnected {  get; set; }
 
     public Publisher(IPostman<Message> postman, ILogger logger, string topic)
     {
@@ -32,6 +33,7 @@ public class Publisher : IPublisher
 
             if (isConnected)
             {
+                await SendAsync(new Message { Command = MessageCommand.Authenticate, Body = _topic });
                 await SendAsync(new Message { Command = MessageCommand.RegisterPublisher, Body = _topic});
                 _logger.LogInfo("Connected to Broker");
             }
