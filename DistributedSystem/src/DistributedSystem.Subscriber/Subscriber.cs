@@ -1,17 +1,16 @@
-﻿
-using DistributedSystem.Broker.Messages;
+﻿using DistributedSystem.Broker.Messages;
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 
 namespace DistributedSystem.Subscriber;
 
 public class Subscriber : ISubscriber
 {
-    private readonly Socket _socket;
     private readonly IPostman<Message> _postman;
     private readonly ILogger _logger;
+
+    private readonly Socket _socket;
 
     private bool isConnected = false;
     private string _topic;

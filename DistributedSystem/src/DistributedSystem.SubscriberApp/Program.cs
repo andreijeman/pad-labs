@@ -13,13 +13,7 @@ string topic = InputValidator.ValidateInput("Subscribe to topic: ", input => (!s
 
 ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
 
-Configuration configuration = new Configuration()
-{
-    IpAddress = ipAddress,
-    Port = port
-};
-
-await subscriber.ConnectAsync(configuration);
+await subscriber.ConnectAsync(new Configuration { IpAddress = ipAddress, Port = port });
 
 _ = Task.Run(subscriber.StartReceiveAsync);
 
