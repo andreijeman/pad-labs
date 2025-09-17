@@ -3,14 +3,14 @@ using DistributedSystem.Broker.Messages;
 
 namespace DistributedSystem.Broker;
 
-public class BrokerQueueItem
+public class QueueItem
 {
-    public Socket Sender { get; }
+    public string SenderId { get; }
     public Message Message { get; }
 
-    public BrokerQueueItem(Socket sender, Message message)
+    public QueueItem(string senderId, Message message)
     {
-        Sender = sender;
+        SenderId = senderId;
         Message = message;
     }
 }

@@ -8,7 +8,7 @@ var brokerArgs = new BrokerArgs
     IpAddress = NetworkHelper.GetLocalIPv4(),
     Port = 7777,
     MaxConnections = 7,
-    QueueHandlerDelay = 2000,
+    QueueHandlerDelay = 500,
 };
 
 var broker = new Broker(brokerArgs, new ConsoleLogger(), new Postman<Message>(new JsonCodec<Message>()));
