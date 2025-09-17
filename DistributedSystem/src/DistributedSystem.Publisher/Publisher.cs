@@ -4,6 +4,7 @@ using DistributedSystem.Network;
 using System.Net.Sockets;
 
 namespace DistributedSystem.Publisher;
+
 public class Publisher : IPublisher
 {
     private readonly IPostman<Message> _postman;
@@ -11,8 +12,8 @@ public class Publisher : IPublisher
 
     private readonly Socket _socket;
     
-    private readonly string _topic;
     public bool isConnected {  get; set; }
+    private readonly string _topic;
 
     public Publisher(IPostman<Message> postman, ILogger logger, string topic)
     {
@@ -21,7 +22,6 @@ public class Publisher : IPublisher
         _logger = logger;
         _topic = topic;
     }
-
 
     public async Task ConnectAsync(Configuration configuration)
     {
