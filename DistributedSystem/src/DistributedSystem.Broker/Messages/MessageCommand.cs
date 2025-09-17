@@ -7,4 +7,6 @@ public static class MessageCommand
     
     public const string RegisterPublisher = "register-publisher";
     public const string Publish = "publish";
+    
+    public const string Authenticate = "authenticate";
 }
