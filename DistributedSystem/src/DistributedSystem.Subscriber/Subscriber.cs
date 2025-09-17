@@ -13,7 +13,7 @@ public class Subscriber : ISubscriber
     private readonly IPostman<Message> _postman;
     private readonly ILogger _logger;
 
-    public bool isConnected = false;
+    private bool isConnected = false;
     private string _topic;
 
     public Subscriber(IPostman<Message> postman, ILogger logger, string topic)

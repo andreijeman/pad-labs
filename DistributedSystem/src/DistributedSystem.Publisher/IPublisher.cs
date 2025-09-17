@@ -1,5 +1,10 @@
-﻿namespace DistributedSystem.Publisher;
+﻿using DistributedSystem.Broker.Messages;
+namespace DistributedSystem.Publisher;
 
-internal interface IPublisher
+public interface IPublisher
 {
+    Task ConnectAsync(Configuration configuration);
+    Task SendAsync(Message message);
+
+    bool isConnected { get; }
 }

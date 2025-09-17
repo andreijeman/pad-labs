@@ -7,9 +7,9 @@ using System.Net;
 
 Console.WriteLine("__ SUBSCRIBER __");
 
-IPAddress ipAddress = InputValidator.ValidateIp("IP Broker: ");
-int port = InputValidator.ValidatePort("PORT Broker: ");
-string topic = InputValidator.ValidateTopic("Subscribe to topic: ");
+IPAddress ipAddress = InputValidator.ValidateInput( "IP Broker: ", input => (IPAddress.TryParse(input, out var ip), ip), "Invalid IP Address")!;
+int port = InputValidator.ValidateInput( "PORT Broker: ", input => (int.TryParse(input, out var port),  port), "Invalid port")!;
+string topic = InputValidator.ValidateInput("Subscribe to topic: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
 
 ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
 
