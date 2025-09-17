@@ -1,50 +1,23 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 
-namespace DistributedSystem.Common.Validators
+namespace DistributedSystem.Common.Validators;
+
+public static class InputValidator
 {
-    public static class InputValidator
+    public static T ValidateInput<T>(string prompt, Func<string, (bool success, T value)> tryParse, string errorMessage)
     {
-        public static IPAddress ValidateIp(string prompt)
+        while (true)
         {
-            while (true)
-            {
-                Console.Write(prompt);
-                string input = Console.ReadLine()!;
+            Console.Write(prompt);
+            string input = Console.ReadLine()!;
 
-                if (IPAddress.TryParse(input, out var ip))
-                    return ip;
+            var (success, value) = tryParse(input);
 
-                Console.WriteLine("Invalid IP Address");
-            }
+            if (success)
+                return value;
+
+            Console.WriteLine(errorMessage);
         }
-
-        public static int ValidatePort(string prompt)
-        {
-            while (true)
-            {
-                Console.Write(prompt);
-                string input = Console.ReadLine()!;
-
-                if (int.TryParse(input, out var port))
-                    return port;
-
-                Console.WriteLine("Invalid Port");
-            }
-        }
-
-        public static string ValidateTopic(string prompt)
-        {
-            while (true)
-            {
-                Console.Write(prompt);
-                string topic = Console.ReadLine()!;
-
-                if(!string.IsNullOrEmpty(topic))
-                    return topic;
-
-                Console.WriteLine("Empty field!");
-            }
-        }
-
     }
 }
