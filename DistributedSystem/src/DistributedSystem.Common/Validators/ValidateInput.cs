@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace DistributedSystem.Subscriber
+namespace DistributedSystem.Common.Validators
 {
     public static class InputValidator
     {
