@@ -7,14 +7,20 @@ using System.Net;
 
 Console.WriteLine("__ SUBSCRIBER __");
 
-IPAddress ipAddress = InputValidator.ValidateInput( "IP Broker: ", input => (IPAddress.TryParse(input, out var ip), ip), "Invalid IP Address")!;
-int port = InputValidator.ValidateInput( "PORT Broker: ", input => (int.TryParse(input, out var port),  port), "Invalid port")!;
-string topic = InputValidator.ValidateInput("Subscribe to topic: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
+IPAddress ipAddress = InputValidator.ValidateInput("Broker IP: ", input => (IPAddress.TryParse(input, out var ip), ip), "Invalid IP Address")!;
+int port = InputValidator.ValidateInput("Broker PORT: ", input => (int.TryParse(input, out var port), port), "Invalid port")!;
+string name = InputValidator.ValidateInput("Subscriber Name: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
 
-ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
+ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), name);
 
 await subscriber.ConnectAsync(new Configuration { IpAddress = ipAddress, Port = port });
 
 _ = Task.Run(subscriber.StartReceiveAsync);
 
-Console.ReadLine();
+while (true)
+{
+    string newTopic = InputValidator.ValidateInput(String.Empty, input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
+
+    await subscriber.ChangeTopicAsync(newTopic);
+    Console.WriteLine($"Topic changed to: {newTopic}");
+}
