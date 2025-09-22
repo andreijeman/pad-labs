@@ -26,7 +26,7 @@ public class Subscriber : ISubscriber
         _name = name;
     }
 
-    public async Task ConnectAsync(Configuration configuration)
+    public async Task ConnectAsync(ConnectionArgs configuration)
     {
         try
         {

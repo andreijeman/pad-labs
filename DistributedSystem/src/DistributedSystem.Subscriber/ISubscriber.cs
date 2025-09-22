@@ -2,7 +2,7 @@
 
 public interface ISubscriber
 {
-    Task ConnectAsync(Configuration configuration);
+    Task ConnectAsync(ConnectionArgs configuration);
     Task StartReceiveAsync();
     Task ChangeTopicAsync(string topic);
     bool IsConnected();
