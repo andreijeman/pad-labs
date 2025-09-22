@@ -57,7 +57,7 @@ public class Broker : IBroker
                 Socket client = await _socket.AcceptAsync(cancellationToken);
                 _ = AuthenticateClientAsync(client, cancellationToken);
                 
-                _logger.LogInfo($"Client <{client.RemoteEndPoint?.ToString()}> accepted");
+                _logger.LogInfo($"Socket <{client.RemoteEndPoint}> accepted.");
             }
             catch (Exception ex)
             {
@@ -79,9 +79,13 @@ public class Broker : IBroker
                     new Message { Command = MessageCommand.Authenticated, Body = "(-_-) I see you;" });
                 
                 _ = HandleClientAsync(client, message.Body, cancellationToken);
+                
+                _logger.LogInfo($"Socket <{client.RemoteEndPoint}> authenticated as <{message.Body}>.");
             }
             else
             {
+                _logger.LogInfo($"Socket <{client.RemoteEndPoint}> failed authentication.");
+                
                 await _postman.SendPacketAsync(client,
                     new Message { Command = MessageCommand.Unauthenticated, Body = "Identifier is already in use." });
             }
@@ -158,6 +162,8 @@ public class Broker : IBroker
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
             _pubSubDict[publisherIdentifier].TryAdd(subscriberId, true);
+            
+            _logger.LogInfo($"Client <{subscriberId}> subscribed to <{publisherAlias}>.");
         }
     }
     
@@ -166,6 +172,8 @@ public class Broker : IBroker
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
             _pubSubDict[publisherIdentifier].TryRemove(subscriberId,  out _);
+            
+            _logger.LogInfo($"Client <{subscriberId}> unsubscribed from <{publisherAlias}>.");
         }
     }
     
@@ -174,11 +182,19 @@ public class Broker : IBroker
         if (_idAliasDict.TryAdd(publisherId, alias))
         {
             _pubSubDict.TryAdd(publisherId, new());
+            
+            _logger.LogInfo($"Client <{publisherId}> registered as publisher <{alias}>.");
+        }
+        else
+        {
+            //...
         }
     }
     
     public void HandlePublishCommand(string publisherId, Message message)
     {
+        _logger.LogInfo($"Publisher <{publisherId}> published <{message.Body}>.");
+        
         foreach (var identifier in _pubSubDict[publisherId])
         {
             _postman.SendPacketAsync(_idSocketDict[identifier.Key], message);

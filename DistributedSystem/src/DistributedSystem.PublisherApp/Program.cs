@@ -1,27 +1,31 @@
-﻿using DistributedSystem.Broker.Messages;
-using DistributedSystem.Common.Validators;
+﻿using System.Globalization;
+using DistributedSystem.Broker.Messages;
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 using DistributedSystem.Publisher;
-using System.Net;
 
-Console.WriteLine("__ PUBLISHER __");
-
-IPAddress ipAddress = InputValidator.ValidateInput("IP Broker: ", input => (IPAddress.TryParse(input, out var ip), ip), "Invalid IP Address")!;
-int port = InputValidator.ValidateInput("PORT Broker: ", input => (int.TryParse(input, out var port), port), "Invalid port")!;
-string topic = InputValidator.ValidateInput("Enter topic: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
-
-IPublisher publisher = new Publisher(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
-
-await publisher.ConnectAsync(new ConnectionArgs { IpAddress = ipAddress, Port = port });
-
-if (publisher.isConnected)
+var connArgs = new ConnectionArgs
 {
-    while(true)
-    {
-        string message = InputValidator.ValidateInput("Enter message: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
-        await publisher.SendMessageAsync(new Message { Command = MessageCommand.Publish, Body = message});
-    }
+    IpAddress = NetworkHelper.GetLocalIPv4(),
+    Port = 7777
+};
+
+var publisher = new Publisher(
+    DateTime.UtcNow.Millisecond.ToString(CultureInfo.InvariantCulture), 
+    new Postman<Message>(new JsonCodec<Message>()),
+    new ConsoleLogger());
+
+await publisher.ConnectAsync(connArgs);
+
+Console.Write("Name of publisher: ");
+var pubName = Console.ReadLine();
+
+await publisher.RegisterPubliher(pubName!);
+
+while(publisher.Connected)
+{
+    string message = Console.ReadLine()!;
+    await publisher.SendMessageAsync(new Message { Command = MessageCommand.Publish, Body = message});
 }
 
 Console.ReadLine();

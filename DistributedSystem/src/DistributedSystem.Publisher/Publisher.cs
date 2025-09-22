@@ -14,7 +14,6 @@ public class Publisher : IPublisher
 
     private readonly Socket _socket;
     
-
     public Publisher(string identifier, IPostman<Message> postman, ILogger logger)
     {
         _identifier = identifier;
@@ -22,6 +21,8 @@ public class Publisher : IPublisher
         _postman = postman;
         _logger = logger;
     }
+    
+    public bool Connected => _socket.Connected;
 
     public async Task ConnectAsync(ConnectionArgs args)
     {
@@ -36,9 +37,9 @@ public class Publisher : IPublisher
                 _logger.LogWarning($"Authentication failed: {response.Body}");
 
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError(ex.Message);
+            _logger.LogError(e.Message);
         }
     }
 
@@ -48,9 +49,25 @@ public class Publisher : IPublisher
         {
             await _postman.SendPacketAsync(_socket, message);
         }
-        catch(Exception ex) 
+        catch(Exception e) 
         {
-            _logger.LogError($"Send-Exeption: {ex.Message}");
+            _logger.LogError(e.Message);
         }
     }
+
+    public async Task RegisterPubliher(string name)
+    {
+        try
+        {
+            await _postman.SendPacketAsync(_socket, 
+                new Message { Command = MessageCommand.RegisterPublisher, Body = name });
+            
+            // Not implemented: broker status message.
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.Message);
+        }
+    }
+    
 }
