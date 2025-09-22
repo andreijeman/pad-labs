@@ -77,6 +77,11 @@ public class Broker : IBroker
             {
                 _ = HandleClientAsync(client, message.Body, cancellationToken);
             }
+            else
+            {
+                await _postman.SendPacketAsync(client,
+                    new Message { Command = MessageCommand.Unauthorized, Body = string.Empty });
+            }
         }
         catch (Exception e)
         {

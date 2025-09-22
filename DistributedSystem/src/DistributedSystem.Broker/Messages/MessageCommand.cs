@@ -9,4 +9,5 @@ public static class MessageCommand
     public const string Publish = "publish";
     
     public const string Authenticate = "authenticate";
+    public const string Unauthorized = "unauthorized";
 }
