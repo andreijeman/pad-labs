@@ -9,13 +9,23 @@ Console.WriteLine("__ SUBSCRIBER __");
 
 IPAddress ipAddress = InputValidator.ValidateInput("Broker IP: ", input => (IPAddress.TryParse(input, out var ip), ip), "Invalid IP Address")!;
 int port = InputValidator.ValidateInput("Broker PORT: ", input => (int.TryParse(input, out var port), port), "Invalid port")!;
-string name = InputValidator.ValidateInput("Subscriber Name: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
 
-ISubscriber subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), name);
+string name;
+ISubscriber subscriber;
 
-await subscriber.ConnectAsync(new Configuration { IpAddress = ipAddress, Port = port });
-
-_ = Task.Run(subscriber.StartReceiveAsync);
+while (true)
+{
+    name = InputValidator.ValidateInput("Subscriber Name: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
+    subscriber = new Subscriber(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), name);
+    
+    await subscriber.ConnectAsync(new Configuration { IpAddress = ipAddress, Port = port });
+    
+    if (subscriber.IsConnected())
+    {
+        _ = Task.Run(subscriber.StartReceiveAsync);
+        break;
+    }
+}
 
 while (true)
 {

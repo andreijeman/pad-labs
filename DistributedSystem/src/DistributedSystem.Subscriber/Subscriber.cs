@@ -2,6 +2,7 @@
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 using System.Net.Sockets;
+using System.Reflection;
 
 namespace DistributedSystem.Subscriber;
 
@@ -30,12 +31,11 @@ public class Subscriber : ISubscriber
         try
         {
             await _socket.ConnectAsync(configuration.IpAddress, configuration.Port);
-            isConnected = _socket.Connected;
-
-            if (isConnected)
+            
+            if (_socket.Connected)
             {
                 await AuthenticateAsync();
-                _logger.LogInfo("Connected to Broker");
+                await CheckAuthentication();
             }
             else
                 _logger.LogError("Failed connection to Broker");
@@ -43,6 +43,32 @@ public class Subscriber : ISubscriber
         catch (Exception ex)
         {
             _logger.LogError($"Connection-Exeption {ex.Message}");
+        }
+    }
+
+    private async Task CheckAuthentication()
+    {
+        try
+        {
+            var result = await _postman.ReceivePacketAsync(_socket);
+            switch (result.Command)
+            {
+                case MessageCommand.Authenticated:
+                    isConnected = true;
+                    _logger.LogInfo(result.Body);
+                    return;
+
+                case MessageCommand.Unauthenticated:
+                    isConnected = false;
+                    _logger.LogWarning(result.Body);
+                    CloseConnection();
+                    return;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Authentication-Exception: {ex.Message}");
+            isConnected = false;
         }
     }
 
@@ -93,6 +119,8 @@ public class Subscriber : ISubscriber
         var message = new Message { Command = MessageCommand.Unsubscribe, Body = topic };
         await _postman.SendPacketAsync(_socket, message);
     }
+
+    public bool IsConnected() => isConnected;
 
     private void CloseConnection()
     {
