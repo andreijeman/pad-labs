@@ -7,21 +7,20 @@ namespace DistributedSystem.Publisher;
 
 public class Publisher : IPublisher
 {
+    private readonly string _identifier;
+    
     private readonly IPostman<Message> _postman;
     private readonly ILogger _logger;
 
     private readonly Socket _socket;
     
-    private readonly string _topic;
 
-    public bool isConnected {  get; set; }
-
-    public Publisher(IPostman<Message> postman, ILogger logger, string topic)
+    public Publisher(string identifier, IPostman<Message> postman, ILogger logger)
     {
+        _identifier = identifier;
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _postman = postman;
         _logger = logger;
-        _topic = topic;
     }
 
     public async Task ConnectAsync(Configuration configuration)
@@ -29,16 +28,12 @@ public class Publisher : IPublisher
         try
         {
             await _socket.ConnectAsync(configuration.IpAddress, configuration.Port);
-            isConnected = _socket.Connected;
+            
+            await _postman.SendPacketAsync(_socket, new Message { Command = MessageCommand.Authenticate, Body = _identifier });
+            
+            var response = await _postman.ReceivePacketAsync(_socket);
+            if (response.Command == MessageCommand.Authenticate)
 
-            if (isConnected)
-            {
-                await SendAsync(new Message { Command = MessageCommand.Authenticate, Body = _topic });
-                await SendAsync(new Message { Command = MessageCommand.RegisterPublisher, Body = _topic});
-                _logger.LogInfo("Connected to Broker");
-            }
-            else
-                _logger.LogError("Failed connection to Broker");
         }
         catch (Exception ex)
         {

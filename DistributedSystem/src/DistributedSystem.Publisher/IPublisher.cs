@@ -5,6 +5,5 @@ public interface IPublisher
 {
     Task ConnectAsync(Configuration configuration);
     Task SendAsync(Message message);
-
-    bool isConnected { get; }
+    
 }
