@@ -12,6 +12,8 @@ var brokerArgs = new BrokerArgs
 };
 
 var broker = new Broker(brokerArgs, new ConsoleLogger(), new Postman<Message>(new JsonCodec<Message>()));
+
+Console.WriteLine("Broker started!");
 broker.Start();
 
 await Task.Delay(-1);

@@ -12,4 +12,6 @@ public static class MessageCommand
     
     public const string Authenticated = "authenticated";
     public const string Unauthenticated = "unauthenticated";
+
+    public const string Fail = "fail";
 }
