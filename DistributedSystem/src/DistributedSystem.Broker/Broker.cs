@@ -76,14 +76,14 @@ public class Broker : IBroker
             if (message.Command == MessageCommand.Authenticate && _idSocketDict.TryAdd(message.Body, client))
             {
                 await _postman.SendPacketAsync(client,
-                    new Message { Command = MessageCommand.Authenticated, Body = "" });
+                    new Message { Command = MessageCommand.Authenticated, Body = "(-_-) I see you;" });
                 
                 _ = HandleClientAsync(client, message.Body, cancellationToken);
             }
             else
             {
                 await _postman.SendPacketAsync(client,
-                    new Message { Command = MessageCommand.Unauthenticated, Body = "" });
+                    new Message { Command = MessageCommand.Unauthenticated, Body = "Identifier is already in use." });
             }
         }
         catch (Exception e)
