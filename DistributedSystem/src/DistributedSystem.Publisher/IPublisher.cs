@@ -3,7 +3,7 @@ namespace DistributedSystem.Publisher;
 
 public interface IPublisher
 {
-    Task ConnectAsync(Configuration configuration);
-    Task SendAsync(Message message);
+    Task ConnectAsync(ConnectionArgs connectionArgs);
+    Task SendMessageAsync(Message message);
     
 }

@@ -23,26 +23,26 @@ public class Publisher : IPublisher
         _logger = logger;
     }
 
-    public async Task ConnectAsync(Configuration configuration)
+    public async Task ConnectAsync(ConnectionArgs args)
     {
         try
         {
-            await _socket.ConnectAsync(configuration.IpAddress, configuration.Port);
-            
+            await _socket.ConnectAsync(args.IpAddress, args.Port);
             await _postman.SendPacketAsync(_socket, new Message { Command = MessageCommand.Authenticate, Body = _identifier });
             
             var response = await _postman.ReceivePacketAsync(_socket);
-            if (response.Command == MessageCommand.Authenticate)
+            
+            if (response.Command != MessageCommand.Authenticated)
+                _logger.LogWarning($"Authentication failed: {response.Body}");
 
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Connection-Exeption {ex.Message}");
-            isConnected = false;
+            _logger.LogError(ex.Message);
         }
     }
 
-    public async Task SendAsync(Message message)
+    public async Task SendMessageAsync(Message message)
     {
         try
         {

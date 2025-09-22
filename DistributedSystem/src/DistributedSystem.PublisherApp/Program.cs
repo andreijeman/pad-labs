@@ -13,14 +13,14 @@ string topic = InputValidator.ValidateInput("Enter topic: ", input => (!string.I
 
 IPublisher publisher = new Publisher(new Postman<Message>(new JsonCodec<Message>()), new ConsoleLogger(), topic);
 
-await publisher.ConnectAsync(new Configuration { IpAddress = ipAddress, Port = port });
+await publisher.ConnectAsync(new ConnectionArgs { IpAddress = ipAddress, Port = port });
 
 if (publisher.isConnected)
 {
     while(true)
     {
         string message = InputValidator.ValidateInput("Enter message: ", input => (!string.IsNullOrWhiteSpace(input), input), "Empty field!");
-        await publisher.SendAsync(new Message { Command = MessageCommand.Publish, Body = message});
+        await publisher.SendMessageAsync(new Message { Command = MessageCommand.Publish, Body = message});
     }
 }
 

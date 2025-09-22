@@ -2,7 +2,7 @@
 
 namespace DistributedSystem.Publisher;
 
-public class Configuration
+public class ConnectionArgs
 {
     public IPAddress IpAddress { get; set; } = null!;
     public int Port { get; set; }
