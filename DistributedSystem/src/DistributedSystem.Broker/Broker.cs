@@ -75,18 +75,20 @@ public class Broker : IBroker
             // Here can be implemented logic for password verification and more. At this point it just trust the client.
             if (message.Command == MessageCommand.Authenticate && _idSocketDict.TryAdd(message.Body, client))
             {
+                await _postman.SendPacketAsync(client,
+                    new Message { Command = MessageCommand.Authenticated, Body = "" });
+                
                 _ = HandleClientAsync(client, message.Body, cancellationToken);
             }
             else
             {
                 await _postman.SendPacketAsync(client,
-                    new Message { Command = MessageCommand.Unauthorized, Body = string.Empty });
+                    new Message { Command = MessageCommand.Unauthenticated, Body = "" });
             }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw;
+            _logger.LogError(e.Message);
         }
     }
     
