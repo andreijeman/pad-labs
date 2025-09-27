@@ -1,4 +1,4 @@
-﻿namespace DistributedSystem.Logger;
+﻿namespace Logger;
 
 public class ConsoleLogger : ILogger
 {

@@ -2,8 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 using DistributedSystem.Broker.Messages;
-using DistributedSystem.Logger;
-using DistributedSystem.Network;
+using Logger;
+using Network;
 
 namespace DistributedSystem.Broker;
 

@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DistributedSystem.Common\DistributedSystem.Common.csproj" />
     <ProjectReference Include="..\DistributedSystem.Publisher\DistributedSystem.Publisher.csproj" />
   </ItemGroup>
 

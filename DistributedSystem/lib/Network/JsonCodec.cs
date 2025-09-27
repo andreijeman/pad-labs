@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 
-namespace DistributedSystem.Network;
+namespace Network;
 
 public class JsonCodec<T> : ICodec<T>
     where T : class

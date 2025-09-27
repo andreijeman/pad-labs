@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace DistributedSystem.Network;
+namespace Network;
 
 public static class NetworkHelper
 {
