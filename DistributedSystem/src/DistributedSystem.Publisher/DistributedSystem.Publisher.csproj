@@ -7,8 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lib\Logger\Logger.csproj" />
-    <ProjectReference Include="..\..\lib\Network\Network.csproj" />
     <ProjectReference Include="..\DistributedSystem.Broker\DistributedSystem.Broker.csproj" />
   </ItemGroup>
 
