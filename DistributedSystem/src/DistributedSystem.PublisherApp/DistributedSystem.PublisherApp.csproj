@@ -11,8 +11,4 @@
     <ProjectReference Include="..\DistributedSystem.Publisher\DistributedSystem.Publisher.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Terminal.Gui" Version="1.19.0" />
-  </ItemGroup>
-
 </Project>
