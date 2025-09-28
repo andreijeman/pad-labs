@@ -3,4 +3,5 @@
 public interface ISubscriber
 {
     Task<bool> Subscribe(string publisher);
+    Task<bool> Unsubscribe(string publisher);
 }
