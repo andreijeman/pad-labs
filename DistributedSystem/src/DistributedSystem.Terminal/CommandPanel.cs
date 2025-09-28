@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using DistributedSystem.Logger;
+using DistributedSystem.Terminal.DefaultCommands;
 
 namespace DistributedSystem.Terminal;
 
@@ -9,7 +10,7 @@ public class CommandPanel : ICommandPanel
 
     private readonly ILogger _logger = new ConsoleLogger();
     
-    private readonly Dictionary<string, CommandAction> _commandActionDict = new();
+    private readonly Dictionary<string, ICommand> _nameCommandDict = new();
     
     private readonly StringBuilder _input = new();
     private const int InputCollOffset = 2;
@@ -26,9 +27,7 @@ public class CommandPanel : ICommandPanel
     
     public void Start(CancellationToken cancellationToken = default)
     {
-        _messageLine = Console.CursorTop;
-        _inputLine = Console.BufferHeight - 1;
-        
+        Clear();
         ShowInput();
         
         while (!cancellationToken.IsCancellationRequested)
@@ -62,13 +61,23 @@ public class CommandPanel : ICommandPanel
     
     private void HandleEnterBtn()
     {
-        var options =  _input.ToString().Split(' ');
+        var args =  _input.ToString().Split(' ');
         
         ClearInputView();
         _input.Clear();
-        
-        if (_commandActionDict.TryGetValue(options[0], out var command))
-            command(options.Skip(1).ToList(), this);
+
+        if (_nameCommandDict.TryGetValue(args[0], out var command))
+        {
+            var argsList = args.Skip(1).ToList(); 
+            
+            command.Execute(
+                Enumerable.Range(0, argsList.Count / 2)
+                    .ToDictionary(
+                        i => argsList[2 * i],        // key
+                        i => argsList[2 * i + 1]     // value
+                    )    
+            );
+        }
         else LogWarning("Undefined command!");
     }
 
@@ -109,28 +118,29 @@ public class CommandPanel : ICommandPanel
         ShowMessageAction(() => Console.WriteLine(message));
     }
 
-    private void ShowMessageAction(Action printAction)
+    public void ShowMessageAction(Action printAction)
     {
+        ClearInputView();
+        
         lock (_locker)
         {
-            ClearInputView();
 
             Console.SetCursorPosition(0, _messageLine);
             printAction();
 
             _messageLine = Console.CursorTop;
             _inputLine = Console.BufferHeight - 1;
-
-            ShowInput();
         }
+        
+        ShowInput();
     }
 
     public event EventHandler<string>? MessageSent;
     
-    public void AddCommand(string command, CommandAction action)
+    public void AddCommand(ICommand command)
     {
-        if (_commandActionDict.TryAdd(command, action)) ;
-        else LogWarning("Command already exists!");
+        if (!_nameCommandDict.TryAdd(command.Name, command)) 
+            LogWarning($"Command <{command.Name}> already registered!");
     }
 
     public void LogInfo(string message)
@@ -150,21 +160,43 @@ public class CommandPanel : ICommandPanel
 
     private void SetupDefaultCommands()
     {
-        _commandActionDict.TryAdd("clear", (options, logger) =>
+        AddCommand(new ClearCommand(this));
+        AddCommand(new HelpCommand(this));
+        LogInfo("Use: [help -c <command>] to view command information.");
+    }
+
+    public void Clear()
+    {
+        lock (_locker)
         {
             Console.Clear();
             _messageLine = Console.CursorTop;
-            ShowInput();
-        });
+        }
+        
+        ShowInput();
+    }
 
-        _commandActionDict.TryAdd("help", (options, logger) =>
+    public void Help(string? context = null)
+    {
+        if (context is null)
         {
             ShowMessageAction(() =>
             {
                 Console.WriteLine("Commands:");
-                foreach (var command in _commandActionDict.Keys)
-                    Console.WriteLine(command);
+                foreach (var command in _nameCommandDict.Keys)
+                    Console.WriteLine("- " + command);
             });
-        });
+        }
+        else
+        {
+            if (_nameCommandDict.TryGetValue(context, out var command))
+            {
+                ShowMessageAction(() =>
+                {
+                    Console.WriteLine(command.Description);
+                });
+            }
+            else LogWarning("Undefined command!");
+        }
     }
 }
