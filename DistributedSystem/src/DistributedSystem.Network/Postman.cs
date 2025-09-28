@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace Network;
+namespace DistributedSystem.Network;
 
 public class Postman<TPacket> : IPostman<TPacket>
 {

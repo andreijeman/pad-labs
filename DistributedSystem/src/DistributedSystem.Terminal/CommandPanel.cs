@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Logger;
+using DistributedSystem.Logger;
 
 namespace DistributedSystem.Terminal;
 
@@ -9,7 +9,7 @@ public class CommandPanel : ICommandPanel, ILogger
 
     private readonly ILogger _logger = new ConsoleLogger();
     
-    private readonly Dictionary<string, Action<List<string>, ILogger>> _commands;
+    private readonly Dictionary<string, CommandAction> _commandActionDict = new();
     
     private readonly StringBuilder _input = new();
     private const int InputCollOffset = 2;
@@ -17,11 +17,12 @@ public class CommandPanel : ICommandPanel, ILogger
     private int _inputLine;
     private int _messageLine;
 
-    public CommandPanel(Dictionary<string, Action<List<string>, ILogger>> commands)
+    public CommandPanel()
     {
-        _commands = commands;
         SetupDefaultCommands();
     }
+    
+    
     
     public void Start(CancellationToken cancellationToken = default)
     {
@@ -66,7 +67,7 @@ public class CommandPanel : ICommandPanel, ILogger
         ClearInputView();
         _input.Clear();
         
-        if (_commands.TryGetValue(options[0], out var command))
+        if (_commandActionDict.TryGetValue(options[0], out var command))
             command(options.Skip(1).ToList(), this);
         else LogWarning("Undefined command!");
     }
@@ -125,7 +126,13 @@ public class CommandPanel : ICommandPanel, ILogger
     }
 
     public event EventHandler<string>? MessageSent;
-  
+    
+    public void AddCommand(string command, CommandAction action)
+    {
+        if (_commandActionDict.TryAdd(command, action)) ;
+        else LogWarning("Command already exists!");
+    }
+
     public void LogInfo(string message)
     {
         ShowMessage(() => _logger.LogInfo(message));
@@ -143,19 +150,19 @@ public class CommandPanel : ICommandPanel, ILogger
 
     private void SetupDefaultCommands()
     {
-        _commands.TryAdd("clear", (options, logger) =>
+        _commandActionDict.TryAdd("clear", (options, logger) =>
         {
             Console.Clear();
             _messageLine = Console.CursorTop;
             ShowInput();
         });
 
-        _commands.TryAdd("help", (options, logger) =>
+        _commandActionDict.TryAdd("help", (options, logger) =>
         {
             ShowMessage(() =>
             {
                 Console.WriteLine("Commands:");
-                foreach (var command in _commands.Keys)
+                foreach (var command in _commandActionDict.Keys)
                     Console.WriteLine(command);
             });
         });

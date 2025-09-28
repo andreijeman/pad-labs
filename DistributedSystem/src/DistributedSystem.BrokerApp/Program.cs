@@ -1,7 +1,7 @@
 ﻿using DistributedSystem.Broker;
 using DistributedSystem.Broker.Messages;
-using Logger;
-using Network;
+using DistributedSystem.Logger;
+using DistributedSystem.Network;
 
 var logger = new ConsoleLogger();
 

@@ -1,4 +1,4 @@
-﻿namespace Network;
+﻿namespace DistributedSystem.Network;
 
 public interface ICodec<TPacket>
 {
