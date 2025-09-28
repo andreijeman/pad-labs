@@ -1,5 +1,4 @@
-﻿using System.Windows.Input;
-using DistributedSystem.Terminal;
+﻿using DistributedSystem.Terminal;
 using Logger;
 
 var commands = new Dictionary<string, Action<List<string>, ILogger>>();
