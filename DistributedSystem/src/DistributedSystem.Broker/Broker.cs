@@ -165,11 +165,11 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{subscriberId}> subscribed to <{publisherAlias}>.");
 
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Ok });
+            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Fail });
+            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
         }
     }
     
@@ -181,11 +181,11 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{subscriberId}> unsubscribed from <{publisherAlias}>.");
             
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Ok });
+            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Fail });
+            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
         }
     }
     
@@ -197,11 +197,11 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{publisherId}> registered as publisher <{alias}>.");
             
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Ok });
+            await _postman.SendPacketAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_socket, new Message { Code = MessageCode.Fail });
+            await _postman.SendPacketAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Fail });
         }
     }
     

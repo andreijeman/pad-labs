@@ -13,8 +13,9 @@ public class HelpCommand : PanelCommandBase
         }.Build();
     }
 
-    public override void Execute(Dictionary<string, string> args)
+    public override Task Execute(Dictionary<string, string> args)
     {
         Panel.Help(args.GetValueOrDefault("-c"));
+        return Task.CompletedTask;
     }
 }
