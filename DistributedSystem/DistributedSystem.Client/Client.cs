@@ -4,7 +4,7 @@ using DistributedSystem.Broker.Messages;
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 
-namespace DistributedSystem.Common;
+namespace DistributedSystem.Client;
 
 public class Client : IClient
 {

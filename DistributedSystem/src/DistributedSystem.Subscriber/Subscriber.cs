@@ -7,7 +7,7 @@ using DistributedSystem.Network;
 
 namespace DistributedSystem.Subscriber;
 
-public class Subscriber : Client, ISubscriber
+public class Subscriber : Client.Client, ISubscriber
 {
     public Subscriber(IPostman<Message> postman, ILogger logger) :  base(postman, logger)
     {

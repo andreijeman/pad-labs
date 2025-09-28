@@ -1,13 +1,11 @@
 ﻿using DistributedSystem.Broker.Messages;
-using System.Net.Sockets;
 using DistributedSystem.Broker.Client;
-using DistributedSystem.Common;
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 
 namespace DistributedSystem.Publisher;
 
-public class Publisher : Client, IPublisher
+public class Publisher : Client.Client, IPublisher
 {
     public Publisher(IPostman<Message> postman, ILogger logger) : base(postman, logger)
     {

@@ -2,7 +2,6 @@
 using DistributedSystem.Common.PanelCommands;
 using DistributedSystem.Network;
 using DistributedSystem.Publisher;
-using DistributedSystem.PublisherApp;
 using DistributedSystem.Terminal;
 
 var panel = new CommandPanel();
