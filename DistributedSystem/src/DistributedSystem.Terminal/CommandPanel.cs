@@ -1,15 +1,16 @@
 ﻿using System.Text;
-using Logger;
+using DistributedSystem.Logger;
+using DistributedSystem.Terminal.DefaultCommands;
 
 namespace DistributedSystem.Terminal;
 
-public class CommandPanel : ICommandPanel, ILogger
+public class CommandPanel : ICommandPanel
 {
     private readonly object _locker = new object();
 
     private readonly ILogger _logger = new ConsoleLogger();
     
-    private readonly Dictionary<string, Action<List<string>, ILogger>> _commands;
+    private readonly Dictionary<string, ICommand> _nameCommandDict = new();
     
     private readonly StringBuilder _input = new();
     private const int InputCollOffset = 2;
@@ -17,17 +18,16 @@ public class CommandPanel : ICommandPanel, ILogger
     private int _inputLine;
     private int _messageLine;
 
-    public CommandPanel(Dictionary<string, Action<List<string>, ILogger>> commands)
+    public CommandPanel()
     {
-        _commands = commands;
         SetupDefaultCommands();
     }
     
+    
+    
     public void Start(CancellationToken cancellationToken = default)
     {
-        _messageLine = Console.CursorTop;
-        _inputLine = Console.BufferHeight - 1;
-        
+        Clear();
         ShowInput();
         
         while (!cancellationToken.IsCancellationRequested)
@@ -61,13 +61,23 @@ public class CommandPanel : ICommandPanel, ILogger
     
     private void HandleEnterBtn()
     {
-        var options =  _input.ToString().Split(' ');
+        var args =  _input.ToString().Split(' ');
         
         ClearInputView();
         _input.Clear();
-        
-        if (_commands.TryGetValue(options[0], out var command))
-            command(options.Skip(1).ToList(), this);
+
+        if (_nameCommandDict.TryGetValue(args[0], out var command))
+        {
+            var argsList = args.Skip(1).ToList(); 
+            
+            command.Execute(
+                Enumerable.Range(0, argsList.Count / 2)
+                    .ToDictionary(
+                        i => argsList[2 * i],        // key
+                        i => argsList[2 * i + 1]     // value
+                    )    
+            );
+        }
         else LogWarning("Undefined command!");
     }
 
@@ -105,59 +115,88 @@ public class CommandPanel : ICommandPanel, ILogger
     
     public void OnMessageReceived(string message)
     {
-        ShowMessage(() => Console.WriteLine(message));
+        ShowMessageAction(() => Console.WriteLine(message));
     }
 
-    private void ShowMessage(Action printAction)
+    public void ShowMessageAction(Action printAction)
     {
+        ClearInputView();
+        
         lock (_locker)
         {
-            ClearInputView();
 
             Console.SetCursorPosition(0, _messageLine);
             printAction();
 
             _messageLine = Console.CursorTop;
             _inputLine = Console.BufferHeight - 1;
-
-            ShowInput();
         }
+        
+        ShowInput();
     }
 
     public event EventHandler<string>? MessageSent;
-  
+    
+    public void AddCommand(ICommand command)
+    {
+        if (!_nameCommandDict.TryAdd(command.Name, command)) 
+            LogWarning($"Command <{command.Name}> already registered!");
+    }
+
     public void LogInfo(string message)
     {
-        ShowMessage(() => _logger.LogInfo(message));
+        ShowMessageAction(() => _logger.LogInfo(message));
     }
 
     public void LogWarning(string message)
     {
-        ShowMessage(() => _logger.LogWarning(message));
+        ShowMessageAction(() => _logger.LogWarning(message));
     }
 
     public void LogError(string message)
     {
-        ShowMessage(() => _logger.LogError(message));
+        ShowMessageAction(() => _logger.LogError(message));
     }
 
     private void SetupDefaultCommands()
     {
-        _commands.TryAdd("clear", (options, logger) =>
+        AddCommand(new ClearCommand(this));
+        AddCommand(new HelpCommand(this));
+        LogInfo("Use: [help -c <command>] to view command information.");
+    }
+
+    public void Clear()
+    {
+        lock (_locker)
         {
             Console.Clear();
             _messageLine = Console.CursorTop;
-            ShowInput();
-        });
+        }
+        
+        ShowInput();
+    }
 
-        _commands.TryAdd("help", (options, logger) =>
+    public void Help(string? context = null)
+    {
+        if (context is null)
         {
-            ShowMessage(() =>
+            ShowMessageAction(() =>
             {
                 Console.WriteLine("Commands:");
-                foreach (var command in _commands.Keys)
-                    Console.WriteLine(command);
+                foreach (var command in _nameCommandDict.Keys)
+                    Console.WriteLine("- " + command);
             });
-        });
+        }
+        else
+        {
+            if (_nameCommandDict.TryGetValue(context, out var command))
+            {
+                ShowMessageAction(() =>
+                {
+                    Console.WriteLine(command.Description);
+                });
+            }
+            else LogWarning("Undefined command!");
+        }
     }
 }

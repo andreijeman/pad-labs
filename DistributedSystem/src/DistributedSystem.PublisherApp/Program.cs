@@ -1,14 +1,14 @@
-﻿using DistributedSystem.Terminal;
-using Logger;
+﻿using DistributedSystem.Broker.Messages;
+using DistributedSystem.Logger;
+using DistributedSystem.Network;
+using DistributedSystem.Publisher;
+using DistributedSystem.Terminal;
 
-var commands = new Dictionary<string, Action<List<string>, ILogger>>();
 
-commands.Add("bip", (s, logger) =>
-{
-    Console.Beep();
-    logger.LogInfo("It was beep");
-} );
 
-var panel = new CommandPanel(commands);
+var panel = new CommandPanel();
+
+var pub = new Publisher(new Postman<Message>(new JsonCodec<Message>()), panel);
+
 
 panel.Start();
