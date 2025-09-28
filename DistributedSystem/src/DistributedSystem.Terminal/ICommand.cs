@@ -4,5 +4,5 @@ public interface ICommand
 {
     string Name { get; }
     string Description { get; }
-    void Execute(Dictionary<string, string> args);
+    Task Execute(Dictionary<string, string> args);
 }

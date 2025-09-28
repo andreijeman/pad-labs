@@ -11,5 +11,5 @@ public abstract class PanelCommandBase : ICommand
     public string Description { get; protected set; } = null!;
     protected ICommandPanel Panel { get; }
 
-    public abstract void Execute(Dictionary<string, string> args);
+    public abstract Task Execute(Dictionary<string, string> args);
 }

@@ -29,6 +29,7 @@ public class CommandPanel : ICommandPanel
     {
         Clear();
         ShowInput();
+        LogInfo("Use: [help] and [help -c <command>] to view command information.");
         
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -65,6 +66,7 @@ public class CommandPanel : ICommandPanel
         
         ClearInputView();
         _input.Clear();
+        ShowInput();
 
         if (_nameCommandDict.TryGetValue(args[0], out var command))
         {
@@ -162,7 +164,6 @@ public class CommandPanel : ICommandPanel
     {
         AddCommand(new ClearCommand(this));
         AddCommand(new HelpCommand(this));
-        LogInfo("Use: [help -c <command>] to view command information.");
     }
 
     public void Clear()

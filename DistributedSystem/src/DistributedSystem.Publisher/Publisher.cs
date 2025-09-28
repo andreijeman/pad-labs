@@ -32,6 +32,7 @@ public class Publisher : IClient, IPublisher
             return false;
         }
 
+        _logger.LogInfo("Connection succeeded.");
         return true;
     }
 
@@ -43,14 +44,20 @@ public class Publisher : IClient, IPublisher
                 new Message { Code = MessageCode.Authenticate, Body = args.Username });
             
             var response = await _postman.ReceivePacketAsync(_socket);
-            
-            return response.Code == MessageCode.Ok;
+
+            if (response.Code == MessageCode.Ok)
+            {
+                _logger.LogInfo("Authentication succeeded.");
+                return true;
+            }
+
+            _logger.LogWarning("Authentication failed.");
         }
         catch (Exception e)
         {
             _logger.LogError(e.Message);
         }
-
+        
         return false;
     }
 
@@ -75,7 +82,13 @@ public class Publisher : IClient, IPublisher
             
             var response = await _postman.ReceivePacketAsync(_socket);
             
-            return response.Code == MessageCode.Ok;
+            if (response.Code == MessageCode.Ok)
+            {
+                _logger.LogInfo("Registration succeeded.");
+                return true;
+            }
+
+            _logger.LogWarning("Registration failed.");
         }
         catch (Exception e)
         {
