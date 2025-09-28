@@ -2,4 +2,4 @@
 
 namespace DistributedSystem.Terminal;
 
-public delegate void CommandAction(List<string> options, ILogger logger);
+public delegate void CommandAction(List<string> options, ICommandPanel panel);

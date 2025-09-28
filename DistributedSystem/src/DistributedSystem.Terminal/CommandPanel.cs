@@ -3,7 +3,7 @@ using DistributedSystem.Logger;
 
 namespace DistributedSystem.Terminal;
 
-public class CommandPanel : ICommandPanel, ILogger
+public class CommandPanel : ICommandPanel
 {
     private readonly object _locker = new object();
 
@@ -106,10 +106,10 @@ public class CommandPanel : ICommandPanel, ILogger
     
     public void OnMessageReceived(string message)
     {
-        ShowMessage(() => Console.WriteLine(message));
+        ShowMessageAction(() => Console.WriteLine(message));
     }
 
-    private void ShowMessage(Action printAction)
+    private void ShowMessageAction(Action printAction)
     {
         lock (_locker)
         {
@@ -135,17 +135,17 @@ public class CommandPanel : ICommandPanel, ILogger
 
     public void LogInfo(string message)
     {
-        ShowMessage(() => _logger.LogInfo(message));
+        ShowMessageAction(() => _logger.LogInfo(message));
     }
 
     public void LogWarning(string message)
     {
-        ShowMessage(() => _logger.LogWarning(message));
+        ShowMessageAction(() => _logger.LogWarning(message));
     }
 
     public void LogError(string message)
     {
-        ShowMessage(() => _logger.LogError(message));
+        ShowMessageAction(() => _logger.LogError(message));
     }
 
     private void SetupDefaultCommands()
@@ -159,7 +159,7 @@ public class CommandPanel : ICommandPanel, ILogger
 
         _commandActionDict.TryAdd("help", (options, logger) =>
         {
-            ShowMessage(() =>
+            ShowMessageAction(() =>
             {
                 Console.WriteLine("Commands:");
                 foreach (var command in _commandActionDict.Keys)

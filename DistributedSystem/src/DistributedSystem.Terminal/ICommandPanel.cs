@@ -1,6 +1,8 @@
-﻿namespace DistributedSystem.Terminal;
+﻿using DistributedSystem.Logger;
 
-public interface ICommandPanel
+namespace DistributedSystem.Terminal;
+
+public interface ICommandPanel : ILogger
 {
     void Start(CancellationToken cancellationToken = default);
     void OnMessageReceived(string message);
