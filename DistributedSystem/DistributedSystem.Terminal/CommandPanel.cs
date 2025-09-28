@@ -20,6 +20,7 @@ public class CommandPanel : ICommandPanel, ILogger
     public CommandPanel(Dictionary<string, Action<List<string>, ILogger>> commands)
     {
         _commands = commands;
+        SetupDefaultCommands();
     }
     
     public void Start(CancellationToken cancellationToken = default)
@@ -107,14 +108,14 @@ public class CommandPanel : ICommandPanel, ILogger
         ShowMessage(() => Console.WriteLine(message));
     }
 
-    private void ShowMessage(Action action)
+    private void ShowMessage(Action printAction)
     {
         lock (_locker)
         {
             ClearInputView();
 
             Console.SetCursorPosition(0, _messageLine);
-            action();
+            printAction();
 
             _messageLine = Console.CursorTop;
             _inputLine = Console.BufferHeight - 1;
@@ -138,5 +139,25 @@ public class CommandPanel : ICommandPanel, ILogger
     public void LogError(string message)
     {
         ShowMessage(() => _logger.LogError(message));
+    }
+
+    private void SetupDefaultCommands()
+    {
+        _commands.TryAdd("clear", (options, logger) =>
+        {
+            Console.Clear();
+            _messageLine = Console.CursorTop;
+            ShowInput();
+        });
+
+        _commands.TryAdd("help", (options, logger) =>
+        {
+            ShowMessage(() =>
+            {
+                Console.WriteLine("Commands:");
+                foreach (var command in _commands.Keys)
+                    Console.WriteLine(command);
+            });
+        });
     }
 }
