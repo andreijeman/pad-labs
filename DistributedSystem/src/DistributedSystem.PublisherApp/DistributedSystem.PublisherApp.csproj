@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\DistributedSystem.Terminal\DistributedSystem.Terminal.csproj" />
     <ProjectReference Include="..\DistributedSystem.Publisher\DistributedSystem.Publisher.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Terminal\DistributedSystem.Terminal.csproj" />
   </ItemGroup>
 
 </Project>
