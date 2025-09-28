@@ -4,11 +4,11 @@ using DistributedSystem.Terminal.DefaultCommands;
 
 namespace DistributedSystem.Common.PanelCommands;
 
-public class AuthCommand : PanelCommandBase
+public class AuthenticateCommand : PanelCommandBase
 {
     private readonly IClient _client;
     
-    public AuthCommand(ICommandPanel panel, IClient client) : base(panel)
+    public AuthenticateCommand(ICommandPanel panel, IClient client) : base(panel)
     {
         _client = client;
         

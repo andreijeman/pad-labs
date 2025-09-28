@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\DistributedSystem.Client\DistributedSystem.Client.csproj" />
     <ProjectReference Include="..\DistributedSystem.Broker\DistributedSystem.Broker.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Common\DistributedSystem.Common.csproj" />
   </ItemGroup>
 
 </Project>

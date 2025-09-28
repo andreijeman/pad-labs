@@ -1,0 +1,32 @@
+﻿using DistributedSystem.Broker.Client;
+using DistributedSystem.Terminal;
+using DistributedSystem.Terminal.DefaultCommands;
+
+namespace DistributedSystem.Common.PanelCommands;
+
+public class SubscribeCommand : PanelCommandBase
+{
+    private readonly ISubscriber _subscriber;
+    
+    public SubscribeCommand(ICommandPanel panel, ISubscriber subscriber) : base(panel)
+    {
+        _subscriber = subscriber;
+        
+        Name = "sub";
+        Description = new CommandDescriptionBuilder
+        {
+            Name = this.Name,
+            Description = "Subscribe to publisher",
+            Signature = "sub [-p name]"
+        }.Build();
+    }
+
+    public override async Task Execute(Dictionary<string, string> args)
+    {
+        if (args.TryGetValue("-p", out var publisher))
+        {
+            await _subscriber.Subscribe(publisher);
+        }
+        else Panel.LogWarning("Invalid command args");
+    }
+}

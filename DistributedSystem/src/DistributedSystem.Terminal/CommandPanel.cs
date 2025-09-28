@@ -115,11 +115,6 @@ public class CommandPanel : ICommandPanel
         }
     }
     
-    public void OnMessageReceived(string message)
-    {
-        ShowMessageAction(() => Console.WriteLine(message));
-    }
-
     public void ShowMessageAction(Action printAction)
     {
         ClearInputView();
@@ -137,8 +132,6 @@ public class CommandPanel : ICommandPanel
         ShowInput();
     }
 
-    public event EventHandler<string>? MessageSent;
-    
     public void AddCommand(ICommand command)
     {
         if (!_nameCommandDict.TryAdd(command.Name, command)) 

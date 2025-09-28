@@ -1,139 +1,65 @@
 ﻿using DistributedSystem.Broker.Messages;
 using System.Net.Sockets;
+using DistributedSystem.Broker.Client;
+using DistributedSystem.Common;
 using DistributedSystem.Logger;
 using DistributedSystem.Network;
 
 namespace DistributedSystem.Subscriber;
 
-public class Subscriber : ISubscriber
+public class Subscriber : Client.Client, ISubscriber
 {
-    private readonly IPostman<Message> _postman;
-    private readonly ILogger _logger;
-
-    private readonly Socket _socket;
-
-    private bool isConnected = false;
-
-    private string _topic = String.Empty;
-    private string _name;
-
-    public Subscriber(IPostman<Message> postman, ILogger logger, string name)
+    public Subscriber(IPostman<Message> postman, ILogger logger) :  base(postman, logger)
     {
-        _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        _postman = postman;
-        _logger = logger;
-        _name = name;
     }
 
-    public async Task ConnectAsync(ConnectionArgs configuration)
+    public async Task<bool> Subscribe(string publisher)
     {
         try
         {
-            await _socket.ConnectAsync(configuration.IpAddress, configuration.Port);
+            await Postman.SendPacketAsync(Socket, 
+                new Message { Code = MessageCode.Subscribe, Body = publisher });
             
-            if (_socket.Connected)
+            var response = await Postman.ReceivePacketAsync(Socket);
+            
+            if (response.Code == MessageCode.Ok)
             {
-                await AuthenticateAsync();
-                await CheckAuthentication();
+                Logger.LogInfo("Subscription succeeded.");
+                return true;
             }
-            else
-                _logger.LogError("Failed connection to Broker");
+
+            Logger.LogWarning("Subscription failed.");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError($"Connection-Exeption {ex.Message}");
+            Logger.LogError(e.Message);
         }
+
+        return false;
     }
 
-    private async Task CheckAuthentication()
+    public async Task<bool> Unsubscribe(string publisher)
     {
         try
         {
-            var result = await _postman.ReceivePacketAsync(_socket);
-            switch (result.Code)
+            await Postman.SendPacketAsync(Socket, 
+                new Message { Code = MessageCode.Unsubscribe, Body = publisher });
+            
+            var response = await Postman.ReceivePacketAsync(Socket);
+            
+            if (response.Code == MessageCode.Ok)
             {
-                case MessageCode.Ok:
-                    isConnected = true;
-                    _logger.LogInfo(result.Body);
-                    return;
-
-                case MessageCode.Fail:
-                    isConnected = false;
-                    _logger.LogWarning(result.Body);
-                    CloseConnection();
-                    return;
+                Logger.LogInfo("Unsubscription succeeded.");
+                return true;
             }
+
+            Logger.LogWarning("Unsubscription failed.");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError($"Authentication-Exception: {ex.Message}");
-            isConnected = false;
+            Logger.LogError(e.Message);
         }
-    }
 
-    private async Task AuthenticateAsync()
-    {
-        var message = new Message { Code = MessageCode.Authenticate, Body = _name };
-        await _postman.SendPacketAsync(_socket, message);
-    }
-
-    private async Task SubscribeAsync()
-    {
-        var message = new Message { Code = MessageCode.Subscribe, Body = _topic };
-        await _postman.SendPacketAsync(_socket, message);
-    }
-
-    public async Task StartReceiveAsync()
-    {
-        try
-        {
-            while (true)
-            {
-                Message message = await _postman.ReceivePacketAsync(_socket);
-
-                if (message is null) break;
-
-                MessageHandler.Handler(message);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Receive-Exeption: {ex.Message}");
-        }
-        finally
-        {
-            CloseConnection();
-        }
-    }
-
-    public async Task ChangeTopicAsync(string topic)
-    {
-        await UnsubscribeAsync(topic);
-        _topic = topic;
-        await SubscribeAsync();
-    }
-
-    private async Task UnsubscribeAsync(string topic)
-    {
-        var message = new Message { Code = MessageCode.Unsubscribe, Body = topic };
-        await _postman.SendPacketAsync(_socket, message);
-    }
-
-    public bool IsConnected() => isConnected;
-
-    private void CloseConnection()
-    {
-        try
-        {
-            if (isConnected)
-            {
-                _socket.Shutdown(SocketShutdown.Both);
-                _logger.LogInfo($"Closing connection to {_socket.RemoteEndPoint}");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Connection-Exeption: {ex.Message}");
-        }
+        return false;
     }
 }

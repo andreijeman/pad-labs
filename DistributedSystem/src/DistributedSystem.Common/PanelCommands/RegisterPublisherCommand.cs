@@ -2,7 +2,7 @@
 using DistributedSystem.Terminal;
 using DistributedSystem.Terminal.DefaultCommands;
 
-namespace DistributedSystem.PublisherApp;
+namespace DistributedSystem.Common.PanelCommands;
 
 public class RegisterPublisherCommand : PanelCommandBase
 {
