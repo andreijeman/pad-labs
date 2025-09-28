@@ -9,8 +9,6 @@ public interface ICommandPanel : ILogger
     void Clear();
     void Help(string? context = null);
     void AddCommand(ICommand command);
-    void ShowMessageAction(Action printAction);
     
-    void OnMessageReceived(string message);
-    event EventHandler<string> MessageSent;
+    void ShowMessageAction(Action printAction);
 }

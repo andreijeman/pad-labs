@@ -48,6 +48,7 @@ public class Client : IClient
             if (response.Code == MessageCode.Ok)
             {
                 Logger.LogInfo("Authentication succeeded.");
+                _ = StartReceiveMessagesAsync();
                 return true;
             }
 
@@ -72,4 +73,23 @@ public class Client : IClient
             Logger.LogError(e.Message);
         }
     }
+
+    public async Task StartReceiveMessagesAsync(CancellationToken cancellationToken = default)
+    {
+        Logger.LogInfo("Starting receive messages");
+        while (!cancellationToken.IsCancellationRequested && Socket.Connected)
+        {
+            try
+            {
+                var message = await Postman.ReceivePacketAsync(Socket);
+                MessageReceived?.Invoke(this, message);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
+            }
+        }
+    }
+
+    public event EventHandler<Message>? MessageReceived;
 }

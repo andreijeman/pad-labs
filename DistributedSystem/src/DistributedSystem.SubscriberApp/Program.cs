@@ -12,4 +12,15 @@ panel.AddCommand(new ConnectCommand(panel, subscriber));
 panel.AddCommand(new AuthenticateCommand(panel, subscriber));
 panel.AddCommand(new SubscribeCommand(panel, subscriber));
 
-panel.Start();
+subscriber.MessageReceived += (sender, message) =>
+{
+    panel.ShowMessageAction(() =>
+    {
+        Console.WriteLine(message.Body);
+    });
+};
+
+_ = Task.Run(() => panel.Start());
+
+
+await Task.Delay(-1);

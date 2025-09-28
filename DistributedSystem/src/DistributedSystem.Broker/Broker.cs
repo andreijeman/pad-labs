@@ -209,9 +209,9 @@ public class Broker : IBroker
     {
         _logger.LogInfo($"Publisher <{publisherId}> published <{message.Body}>.");
         
-        foreach (var identifier in _pubSubDict[publisherId])
+        foreach (var identifier in _pubSubDict[publisherId].Keys)
         {
-            await _postman.SendPacketAsync(_idSocketDict[identifier.Key], message);
+            await _postman.SendPacketAsync(_idSocketDict[identifier], message);
         }
         
         foreach (var messages in _idUnsendedMsgDict.Values)
