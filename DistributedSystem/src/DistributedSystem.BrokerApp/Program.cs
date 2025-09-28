@@ -1,19 +1,23 @@
 ﻿using DistributedSystem.Broker;
 using DistributedSystem.Broker.Messages;
-using DistributedSystem.Logger;
-using DistributedSystem.Network;
+using Logger;
+using Network;
 
-var brokerArgs = new BrokerArgs
-{
-    IpAddress = NetworkHelper.GetLocalIPv4(),
-    Port = 7777,
-    MaxConnections = 7,
-    QueueHandlerDelay = 500,
-};
+var logger = new ConsoleLogger();
 
-var broker = new Broker(brokerArgs, new ConsoleLogger(), new Postman<Message>(new JsonCodec<Message>()));
+var broker = new Broker(
+    new BrokerArgs
+    {
+        IpAddress = NetworkHelper.GetLocalIPv4(),
+        Port = 7777,
+        MaxConnections = 7,
+        QueueHandlerDelay = 500,
+    }, 
+    logger, 
+    new Postman<Message>(new JsonCodec<Message>())
+);
 
-Console.WriteLine("Broker started!");
 broker.Start();
+logger.LogInfo("Broker started!");
 
 await Task.Delay(-1);

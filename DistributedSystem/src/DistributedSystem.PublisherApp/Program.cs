@@ -1,31 +1,15 @@
-﻿using System.Globalization;
-using DistributedSystem.Broker.Messages;
-using DistributedSystem.Logger;
-using DistributedSystem.Network;
-using DistributedSystem.Publisher;
+﻿using System.Windows.Input;
+using DistributedSystem.Terminal;
+using Logger;
 
-var connArgs = new ConnectionArgs
+var commands = new Dictionary<string, Action<List<string>, ILogger>>();
+
+commands.Add("bip", (s, logger) =>
 {
-    IpAddress = NetworkHelper.GetLocalIPv4(),
-    Port = 7777
-};
+    Console.Beep();
+    logger.LogInfo("It was beep");
+} );
 
-var publisher = new Publisher(
-    DateTime.UtcNow.Millisecond.ToString(CultureInfo.InvariantCulture), 
-    new Postman<Message>(new JsonCodec<Message>()),
-    new ConsoleLogger());
+var panel = new CommandPanel(commands);
 
-await publisher.ConnectAsync(connArgs);
-
-Console.Write("Name of publisher: ");
-var pubName = Console.ReadLine();
-
-await publisher.RegisterPubliher(pubName!);
-
-while(publisher.Connected)
-{
-    string message = Console.ReadLine()!;
-    await publisher.SendMessageAsync(new Message { Command = MessageCommand.Publish, Body = message});
-}
-
-Console.ReadLine();
+panel.Start();

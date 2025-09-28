@@ -2,6 +2,6 @@
 
 public class Message
 {
-    public required string Command { get; set; } 
-    public required string Body { get; set; }
+    public string Code { get; set; } = MessageCode.Fail;
+    public string Body { get; set; } = "";
 }

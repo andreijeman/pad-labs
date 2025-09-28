@@ -1,8 +1,7 @@
 ﻿using DistributedSystem.Broker.Messages;
-using DistributedSystem.Logger;
-using DistributedSystem.Network;
 using System.Net.Sockets;
-using System.Reflection;
+using Logger;
+using Network;
 
 namespace DistributedSystem.Subscriber;
 
@@ -51,14 +50,14 @@ public class Subscriber : ISubscriber
         try
         {
             var result = await _postman.ReceivePacketAsync(_socket);
-            switch (result.Command)
+            switch (result.Code)
             {
-                case MessageCommand.Authenticated:
+                case MessageCode.Ok:
                     isConnected = true;
                     _logger.LogInfo(result.Body);
                     return;
 
-                case MessageCommand.Unauthenticated:
+                case MessageCode.Fail:
                     isConnected = false;
                     _logger.LogWarning(result.Body);
                     CloseConnection();
@@ -74,13 +73,13 @@ public class Subscriber : ISubscriber
 
     private async Task AuthenticateAsync()
     {
-        var message = new Message { Command = MessageCommand.Authenticate, Body = _name };
+        var message = new Message { Code = MessageCode.Authenticate, Body = _name };
         await _postman.SendPacketAsync(_socket, message);
     }
 
     private async Task SubscribeAsync()
     {
-        var message = new Message { Command = MessageCommand.Subscribe, Body = _topic };
+        var message = new Message { Code = MessageCode.Subscribe, Body = _topic };
         await _postman.SendPacketAsync(_socket, message);
     }
 
@@ -116,7 +115,7 @@ public class Subscriber : ISubscriber
 
     private async Task UnsubscribeAsync(string topic)
     {
-        var message = new Message { Command = MessageCommand.Unsubscribe, Body = topic };
+        var message = new Message { Code = MessageCode.Unsubscribe, Body = topic };
         await _postman.SendPacketAsync(_socket, message);
     }
 

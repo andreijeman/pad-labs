@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace DistributedSystem.Network;
+namespace Network;
 public interface IPostman<TPacket>
 {
     Task<TPacket> ReceivePacketAsync(Socket socket);
