@@ -17,13 +17,13 @@ public class RegisterPublisherCommand : PanelCommandBase
         {
             Name = this.Name,
             Description = "Register publisher to the broker",
-            Signature = "reg [-n name]"
+            Signature = "reg [-p <publisher-name>]"
         }.Build();
     }
 
     public override async Task Execute(Dictionary<string, string> args)
     {
-        if (args.TryGetValue("-n", out var name))
+        if (args.TryGetValue("-p", out var name))
         {
             await _publisher.RegisterPubliher(name);
         }

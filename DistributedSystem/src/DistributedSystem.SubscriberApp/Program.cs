@@ -16,11 +16,8 @@ subscriber.MessageReceived += (sender, message) =>
 {
     panel.ShowMessageAction(() =>
     {
-        Console.WriteLine(message.Body);
+        Console.WriteLine("Received message: " + message.Body);
     });
 };
 
-_ = Task.Run(() => panel.Start());
-
-
-await Task.Delay(-1);
+panel.Start();

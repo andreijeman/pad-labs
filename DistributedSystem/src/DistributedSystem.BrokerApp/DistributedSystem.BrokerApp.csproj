@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DistributedSystem.Broker\DistributedSystem.Broker.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Common\DistributedSystem.Common.csproj" />
+    <ProjectReference Include="..\DistributedSystem.Terminal\DistributedSystem.Terminal.csproj" />
   </ItemGroup>
 
 </Project>

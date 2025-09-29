@@ -91,7 +91,7 @@ public class CommandPanel : ICommandPanel
         {
             var argsList = args.Skip(1).ToList(); 
             
-            command.Execute(
+            _ = command.Execute(
                 Enumerable.Range(0, argsList.Count / 2)
                     .ToDictionary(
                         i => argsList[2 * i],        // key

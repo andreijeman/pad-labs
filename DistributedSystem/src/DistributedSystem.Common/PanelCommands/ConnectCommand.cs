@@ -18,24 +18,20 @@ public class ConnectCommand : PanelCommandBase
         {
             Name = this.Name,
             Description = "Connect to the broker",
-            Signature = "conn [-i x.x.x.x] [-p n]"
+            Signature = "conn [-i <ip-address>] [-p <port>]"
         }.Build();
     }
 
     public override async Task Execute(Dictionary<string, string> args)
     {
-        if (args.TryGetValue("-i", out var ipString) &&
-            IPAddress.TryParse(ipString, out var ip) &&
-            args.TryGetValue("-p", out var portString) &&
-            int.TryParse(portString, out var port)
-           )
-        {
-            await _client.ConnectAsync(new ConnectionArgs
-            {
-                IpAddress = ip,
-                Port = port
-            });
-        }
-        else Panel.LogWarning("Invalid command args");
+        var connArgs = new ConnectionArgs();
+        
+        if (args.TryGetValue("-i", out var ipStr) && IPAddress.TryParse(ipStr, out var ip))
+            connArgs.IpAddress = ip;
+        
+        if (args.TryGetValue("-p", out var portStr) && int.TryParse(portStr, out var port))
+            connArgs.Port = port;
+
+        await _client.ConnectAsync(connArgs);
     }
 }
