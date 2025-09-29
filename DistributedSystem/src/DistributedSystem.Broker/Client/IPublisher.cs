@@ -2,5 +2,5 @@
 
 public interface IPublisher
 {
-    Task<bool> RegisterPubliher(string name);
+    Task RegisterPubliher(string name);
 }

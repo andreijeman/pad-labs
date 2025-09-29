@@ -11,29 +11,8 @@ public class Publisher : Client.Client, IPublisher
     {
     }
     
-    public async Task<bool> RegisterPubliher(string name)
+    public Task RegisterPubliher(string name)
     {
-        try
-        {
-            await Postman.SendPacketAsync(Socket, 
-                new Message { Code = MessageCode.RegisterPublisher, Body = name });
-            
-            var response = await Postman.ReceivePacketAsync(Socket);
-            
-            if (response.Code == MessageCode.Ok)
-            {
-                Logger.LogInfo("Registration succeeded.");
-                return true;
-            }
-
-            Logger.LogWarning("Registration failed.");
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e.Message);
-        }
-
-        return false;
+        return SendMessageAsync(new Message { Code = MessageCode.RegisterPublisher, Body = name });
     }
-    
 }

@@ -17,7 +17,7 @@ public class SubscribeCommand : PanelCommandBase
         {
             Name = this.Name,
             Description = "Subscribe to publisher",
-            Signature = "sub [-p name]"
+            Signature = "sub [-p <publisher-name>]"
         }.Build();
     }
 

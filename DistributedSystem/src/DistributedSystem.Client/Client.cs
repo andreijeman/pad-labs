@@ -20,7 +20,7 @@ public class Client : IClient
         Logger = logger;
     }
     
-    public virtual async Task<bool> ConnectAsync(ConnectionArgs args)
+    public async Task ConnectAsync(ConnectionArgs args)
     {
         try
         {
@@ -29,40 +29,19 @@ public class Client : IClient
         catch (Exception e)
         {
             Logger.LogError(e.Message);
-            return false;
-        }
-
-        Logger.LogInfo("Connection succeeded.");
-        return true;
-    }
-
-    public virtual async Task<bool> AuthenticateAsync(AuthenticationArgs args)
-    {
-        try
-        {
-            await Postman.SendPacketAsync(Socket, 
-                new Message { Code = MessageCode.Authenticate, Body = args.Username });
-            
-            var response = await Postman.ReceivePacketAsync(Socket);
-
-            if (response.Code == MessageCode.Ok)
-            {
-                Logger.LogInfo("Authentication succeeded.");
-                _ = StartReceiveMessagesAsync();
-                return true;
-            }
-
-            Logger.LogWarning("Authentication failed.");
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e.Message);
+            return;
         }
         
-        return false;
+        Logger.LogInfo($"Client connected to <{args.IpAddress}:{args.Port}>");
+        _ = ReceiveMessagesAsync();
     }
 
-    public virtual async Task SendMessageAsync(Message message)
+    public Task AuthenticateAsync(AuthenticationArgs args)
+    {
+         return SendMessageAsync(new Message { Code = MessageCode.Authenticate, Body = args.Username });
+    }
+
+    public async Task SendMessageAsync(Message message)
     {
         try
         {
@@ -74,14 +53,14 @@ public class Client : IClient
         }
     }
 
-    public async Task StartReceiveMessagesAsync(CancellationToken cancellationToken = default)
+    private async Task ReceiveMessagesAsync(CancellationToken ct = default)
     {
-        Logger.LogInfo("Starting receive messages");
-        while (!cancellationToken.IsCancellationRequested && Socket.Connected)
+        while (!ct.IsCancellationRequested && Socket.Connected)
         {
             try
             {
                 var message = await Postman.ReceivePacketAsync(Socket);
+                Logger.LogInfo($"Received message: Code[{message.Code}] Body[{message.Body}]");
                 MessageReceived?.Invoke(this, message);
             }
             catch (Exception e)

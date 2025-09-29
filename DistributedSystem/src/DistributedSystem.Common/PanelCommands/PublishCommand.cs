@@ -18,7 +18,7 @@ public class PublishCommand : PanelCommandBase
         {
             Name = this.Name,
             Description = "Publish a message",
-            Signature = "pub [-m message]"
+            Signature = "pub [-m <message>]"
         }.Build();
     }
 

@@ -17,7 +17,7 @@ public class AuthenticateCommand : PanelCommandBase
         {
             Name = this.Name,
             Description = "Authenticate to the broker",
-            Signature = "auth [-u username]"
+            Signature = "auth [-u <username>]"
         }.Build();
     }
 

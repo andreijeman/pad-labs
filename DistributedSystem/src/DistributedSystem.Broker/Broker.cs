@@ -27,35 +27,31 @@ public class Broker : IBroker
     // !Not performant solution.
     private readonly ConcurrentDictionary<string, List<Message>> _idUnsendedMsgDict = new();
     
-    
-    public Broker(BrokerArgs args, ILogger logger, IPostman<Message> postman)
+    public Broker(ILogger logger, IPostman<Message> postman)
     {
-        Args = args;
         _logger = logger;
         _postman = postman;
         
         _socket =  new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     }
     
-    public BrokerArgs Args { get; }
-    
-    public void Start(CancellationToken cancellationToken = default)
+    public void Start(BrokerArgs args, CancellationToken ct = default)
     {
-        _socket.Bind(new IPEndPoint(Args.IpAddress, Args.Port));
-        _socket.Listen(Args.MaxConnections);
+        _socket.Bind(new IPEndPoint(args.IpAddress, args.Port));
+        _socket.Listen(args.MaxConnections);
 
-        _ = AcceptClientsAsync(cancellationToken);
-        _ = HandleQueueAsync(cancellationToken);
+        _ = AcceptClientsAsync(ct);
+        _ = HandleQueueAsync(args.QueueHandlerDelay, ct);
     }
     
-    private async Task AcceptClientsAsync(CancellationToken cancellationToken = default)
+    private async Task AcceptClientsAsync(CancellationToken ct = default)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!ct.IsCancellationRequested)
         {
             try
             {
-                Socket client = await _socket.AcceptAsync(cancellationToken);
-                _ = AuthenticateClientAsync(client, cancellationToken);
+                Socket client = await _socket.AcceptAsync(ct);
+                _ = AuthenticateClientAsync(client, ct);
                 
                 _logger.LogInfo($"Socket <{client.RemoteEndPoint}> accepted.");
             }
@@ -66,28 +62,27 @@ public class Broker : IBroker
         }
     }
 
-    private async Task AuthenticateClientAsync(Socket client, CancellationToken cancellationToken = default)
+    private async Task AuthenticateClientAsync(Socket client, CancellationToken ct = default)
     {
         try
         {
             var message = await _postman.ReceivePacketAsync(client);
             
             // Here can be implemented logic for password verification and more. At this point it just trust the client.
-            if (message.Code == MessageCode.Authenticate && _idSocketDict.TryAdd(message.Body, client))
+            if (message.Code == MessageCode.Authenticate)
             {
-                await _postman.SendPacketAsync(client,
-                    new Message { Code = MessageCode.Ok, Body = "(-_-) I see you;" });
-                
-                _ = HandleClientAsync(client, message.Body, cancellationToken);
-                
                 _logger.LogInfo($"Socket <{client.RemoteEndPoint}> authenticated as <{message.Body}>.");
+                
+                _idSocketDict.TryAdd(message.Body, client);
+                
+                _ = SendMessageAsync(client, new Message { Code = MessageCode.Ok, Body = "I see you (-_-)" });
+                _ = HandleClientAsync(client, message.Body, ct);
             }
             else
             {
                 _logger.LogInfo($"Socket <{client.RemoteEndPoint}> failed authentication.");
                 
-                await _postman.SendPacketAsync(client,
-                    new Message { Code = MessageCode.Fail, Body = "Identifier is already in use." });
+                _ = SendMessageAsync(client, new Message { Code = MessageCode.Fail, Body = "Identifier is already in use." });
             }
         }
         catch (Exception e)
@@ -96,11 +91,11 @@ public class Broker : IBroker
         }
     }
     
-    private async Task HandleClientAsync(Socket client, string clientId, CancellationToken cancellationToken)
+    private async Task HandleClientAsync(Socket client, string clientId, CancellationToken ct)
     {
         await HandleUnsentMsgAsync(client, clientId);
         
-        while (!cancellationToken.IsCancellationRequested && client.Connected)
+        while (!ct.IsCancellationRequested && client.Connected)
         {
             try
             {
@@ -113,7 +108,8 @@ public class Broker : IBroker
             }
         }
 
-        if (!client.Connected) _idUnsendedMsgDict.TryAdd(clientId, new List<Message>());
+        if (!client.Connected)
+            _idUnsendedMsgDict.TryAdd(clientId, new List<Message>());
     }
 
     private async Task HandleUnsentMsgAsync(Socket client, string clientId)
@@ -122,42 +118,43 @@ public class Broker : IBroker
         {
             foreach (var message in messages)
             {
-               await _postman.SendPacketAsync(client, message);
+                _logger.LogInfo($"Send unsent message to <{clientId}>: {message.Body}");
+                await SendMessageAsync(client, message);
             }
         }
         
         _idUnsendedMsgDict.TryRemove(clientId, out _);
     }
 
-    private async Task HandleQueueAsync(CancellationToken cancellationToken)
+    private async Task HandleQueueAsync(int delay, CancellationToken ct)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!ct.IsCancellationRequested)
         {
             if (_queue.IsEmpty)
-                await Task.Delay(Args.QueueHandlerDelay, cancellationToken);
+                await Task.Delay(delay, ct);
 
             if (_queue.TryDequeue(out var item))
             {
                 switch (item.Message.Code)
                 {
                     case MessageCode.Subscribe: 
-                        _ = HandleSubscribeCommandAsync(item.SenderId, item.Message.Body);
+                        HandleSubscribeCommand(item.SenderId, item.Message.Body);
                         break;
                     case MessageCode.Unsubscribe:
-                        _ = HandleUnsubscribeCommandAsync(item.SenderId, item.Message.Body);
+                        HandleUnsubscribeCommand(item.SenderId, item.Message.Body);
                         break;
                     case MessageCode.RegisterPublisher:
-                        _ = HandleRegisterPublisherCommandAsync(item.SenderId, item.Message.Body);
+                        HandleRegisterPublisherCommand(item.SenderId, item.Message.Body);
                         break;
                     case MessageCode.Publish:
-                        _ = HandlePublishCommandAsync(item.SenderId, item.Message);
+                        HandlePublishCommand(item.SenderId, item.Message);
                         break;
                 }
             }
         }
     }
 
-    private async Task HandleSubscribeCommandAsync(string subscriberId, string publisherAlias)
+    private void HandleSubscribeCommand(string subscriberId, string publisherAlias)
     { 
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
@@ -165,15 +162,15 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{subscriberId}> subscribed to <{publisherAlias}>.");
 
-            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
         }
     }
     
-    private async Task HandleUnsubscribeCommandAsync(string subscriberId, string publisherAlias)
+    private void HandleUnsubscribeCommand(string subscriberId, string publisherAlias)
     {
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
@@ -181,15 +178,15 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{subscriberId}> unsubscribed from <{publisherAlias}>.");
             
-            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
         }
     }
     
-    private async Task HandleRegisterPublisherCommandAsync(string publisherId, string alias)
+    private void HandleRegisterPublisherCommand(string publisherId, string alias)
     {
         if (_idAliasDict.TryAdd(publisherId, alias))
         {
@@ -197,26 +194,40 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{publisherId}> registered as publisher <{alias}>.");
             
-            await _postman.SendPacketAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Ok });
+            _ = SendMessageAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            await _postman.SendPacketAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Fail });
+            _ = SendMessageAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Fail });
         }
     }
     
-    private async Task HandlePublishCommandAsync(string publisherId, Message message)
+    private void HandlePublishCommand(string publisherId, Message message)
     {
         _logger.LogInfo($"Publisher <{publisherId}> published <{message.Body}>.");
         
         foreach (var identifier in _pubSubDict[publisherId].Keys)
         {
-            await _postman.SendPacketAsync(_idSocketDict[identifier], message);
+            var socket = _idSocketDict[identifier];
+            if (socket.Connected)
+                _ = SendMessageAsync(_idSocketDict[identifier], message);
         }
         
         foreach (var messages in _idUnsendedMsgDict.Values)
         {
             messages.Add(message);
+        }
+    }
+
+    private async Task SendMessageAsync(Socket client, Message message)
+    {
+        try
+        {
+            await _postman.SendPacketAsync(client, message);
+        }
+        catch(Exception e)
+        {
+            _logger.LogError(e.Message);
         }
     }
 }

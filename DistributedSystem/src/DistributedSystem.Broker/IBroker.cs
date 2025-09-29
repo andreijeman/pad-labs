@@ -2,6 +2,6 @@
 
 public interface IBroker
 { 
-    void Start(CancellationToken cancellationToken = default);
+    void Start(BrokerArgs args, CancellationToken ct = default);
 }
 
