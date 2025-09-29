@@ -14,22 +14,22 @@ public class CommandPanel : ICommandPanel
     private readonly Dictionary<string, ICommand> _nameCommandDict = new();
     
     private readonly StringBuilder _input = new();
-    private const int InputPosYOffset = 2;
-
-    private Point _inputPos;
+    
+    private Point _inputCursorPos;
+    private int _inputIndex;
     private int _messageLine;
 
+    private const int InputCursorPosYOffset = 2;
+    private const string InputHowToNameIt = ": ";
+    
     public CommandPanel()
     {
         SetupDefaultCommands();
     }
     
-    
-    
     public void Start(CancellationToken cancellationToken = default)
     {
         Clear();
-        ShowInput();
         LogInfo("Use: [help] and [help -c <command>] to view command information.");
         
         while (!cancellationToken.IsCancellationRequested)
@@ -45,7 +45,11 @@ public class CommandPanel : ICommandPanel
                     HandleBackspaceBtn();
                     break;
                 case ConsoleKey.LeftArrow:
-                    
+                    MoveCursorLeft();
+                    break;
+                case ConsoleKey.RightArrow:
+                    MoveCursorRight();
+                    break;
                 default:
                     HandleCharacter(keyInfo.KeyChar);
                     break;
@@ -57,9 +61,21 @@ public class CommandPanel : ICommandPanel
     {
         lock (_locker)
         {
-            Console.SetCursorPosition(_inputPos.Y, _inputPos.X);
-            Console.Write(character);
-            _input.Insert(_inputPos.Y, character);
+            if (_inputCursorPos.X < Console.BufferWidth - 1)
+            {
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
+                Console.Write(character + _input.ToString(_inputIndex, _input.Length - _inputIndex));
+
+                _input.Insert(_inputIndex, character);
+                _inputCursorPos.X++;
+                _inputIndex++;
+
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
+            }
+            else
+            {
+                LogError("Why do you write so much? Are you dumb!?");
+            }
         }
     }
     
@@ -68,7 +84,7 @@ public class CommandPanel : ICommandPanel
         var args =  _input.ToString().Split(' ');
         
         ClearInputView();
-        _input.Clear();
+        ResetInput();
         ShowInput();
 
         if (_nameCommandDict.TryGetValue(args[0], out var command))
@@ -88,23 +104,48 @@ public class CommandPanel : ICommandPanel
 
     private void HandleBackspaceBtn()
     {
-        if (_input.Length > 0)
+        if (_inputIndex > 0)
         {
             lock (_locker)
             {
-                _input.Remove(_inputPos.Y - 1, 1);
-                Console.SetCursorPosition(_inputPos.Y, _inputPos.X);
+                Console.SetCursorPosition(InputCursorPosYOffset + _input.Length - 1, _inputCursorPos.Y);
                 Console.Write(' ');
-                Console.SetCursorPosition(_inputPos.Y, _inputPos.X);
+                
+                _inputIndex--;
+                _inputCursorPos.X--;
+                _input.Remove(_inputIndex, 1);
+                
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
+                Console.Write(_input.ToString(_inputIndex, _input.Length - _inputIndex));
+                
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
             }
         }
     }
 
-    private void MoveInputCursor(int units)
+    private void MoveCursorLeft()
     {
         lock (_locker)
         {
-            
+            if (_inputIndex > 0)
+            {
+                _inputCursorPos.X--;
+                _inputIndex--;
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
+            }
+        }
+    }
+    
+    private void MoveCursorRight()
+    {
+        lock (_locker)
+        {
+            if (_inputIndex < _input.Length)
+            {
+                _inputCursorPos.X++;
+                _inputIndex++;
+                Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
+            }
         }
     }
     
@@ -112,9 +153,9 @@ public class CommandPanel : ICommandPanel
     {
         lock(_locker)
         {
-            Console.SetCursorPosition(0, _inputPos.X);
+            Console.SetCursorPosition(0, _inputCursorPos.Y);
             Console.Write($": {_input}");
-            Console.SetCursorPosition(_inputPos.Y, _inputPos.X);
+            Console.SetCursorPosition(_inputCursorPos.X, _inputCursorPos.Y);
         }
     }
     
@@ -122,8 +163,19 @@ public class CommandPanel : ICommandPanel
     {
         lock(_locker)
         {
-            Console.SetCursorPosition(0, _inputPos.X);
-            Console.Write(new string(' ', InputPosYOffset + _input.Length));
+            Console.SetCursorPosition(0, _inputCursorPos.Y);
+            Console.Write(new string(' ', InputCursorPosYOffset + _input.Length));
+        }
+    }
+
+    private void ResetInput()
+    {
+        lock (_locker)
+        {
+            _input.Clear();
+            _inputCursorPos.X = InputCursorPosYOffset;
+            _inputCursorPos.Y = Console.BufferHeight - 1;
+            _inputIndex = 0;
         }
     }
     
@@ -133,13 +185,11 @@ public class CommandPanel : ICommandPanel
         
         lock (_locker)
         {
-
             Console.SetCursorPosition(0, _messageLine);
             printAction();
 
             _messageLine = Console.CursorTop;
-            _inputPos.X = Console.BufferHeight - 1;
-            _inputPos.Y = InputPosYOffset;
+            _inputCursorPos.Y = Console.BufferHeight - 1;
         }
         
         ShowInput();
@@ -180,6 +230,7 @@ public class CommandPanel : ICommandPanel
             _messageLine = Console.CursorTop;
         }
         
+        ResetInput();
         ShowInput();
     }
 
