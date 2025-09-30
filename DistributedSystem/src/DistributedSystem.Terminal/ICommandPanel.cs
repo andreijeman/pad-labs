@@ -4,11 +4,12 @@ namespace DistributedSystem.Terminal;
 
 public interface ICommandPanel : ILogger
 {
-    void Start(CancellationToken cancellationToken = default);
+    Task StartAsync(CancellationToken cancellationToken = default);
 
     void Clear();
     void Help(string? context = null);
     void AddCommand(ICommand command);
+    void ExecuteTextCommand(string text);
     
     void ShowMessageAction(Action printAction);
 }

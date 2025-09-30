@@ -9,4 +9,10 @@ var broker = new Broker(panel, new Postman<Message>(new JsonCodec<Message>()));
 
 panel.AddCommand(new StartBrokerCommand(panel, broker));
 
-panel.Start();
+_ = panel.StartAsync();
+
+// Automated connection and setup
+panel.ExecuteTextCommand($"start -i {NetworkHelper.GetLocalIPv4()} -p 7777 -m 8 -d 50");
+
+await Task.Delay(-1);
+

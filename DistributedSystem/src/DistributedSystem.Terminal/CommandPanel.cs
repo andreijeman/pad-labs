@@ -27,34 +27,37 @@ public class CommandPanel : ICommandPanel
         SetupDefaultCommands();
     }
     
-    public void Start(CancellationToken cancellationToken = default)
+    public Task StartAsync(CancellationToken cancellationToken = default)
     {
-        Clear();
+        SetupEnvironmentVariables();
         LogInfo("Use: [help] and [help -c <command>] to view command information.");
-        
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
-            switch (keyInfo.Key)
+        return Task.Run(() =>
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
-                case ConsoleKey.Enter:
-                    HandleEnterBtn();
-                    break;
-                case ConsoleKey.Backspace:
-                    HandleBackspaceBtn();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    MoveCursorLeft();
-                    break;
-                case ConsoleKey.RightArrow:
-                    MoveCursorRight();
-                    break;
-                default:
-                    HandleCharacter(keyInfo.KeyChar);
-                    break;
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.Enter:
+                        HandleEnterBtn();
+                        break;
+                    case ConsoleKey.Backspace:
+                        HandleBackspaceBtn();
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        MoveCursorLeft();
+                        break;
+                    case ConsoleKey.RightArrow:
+                        MoveCursorRight();
+                        break;
+                    default:
+                        HandleCharacter(keyInfo.KeyChar);
+                        break;
+                }
             }
-        }
+        });
     }
 
     private void HandleCharacter(char character)
@@ -81,25 +84,10 @@ public class CommandPanel : ICommandPanel
     
     private void HandleEnterBtn()
     {
-        var args =  _input.ToString().Split(' ');
-        
+        ExecuteTextCommand(_input.ToString());
         ClearInputView();
         ResetInput();
         ShowInput();
-
-        if (_nameCommandDict.TryGetValue(args[0], out var command))
-        {
-            var argsList = args.Skip(1).ToList(); 
-            
-            _ = command.Execute(
-                Enumerable.Range(0, argsList.Count / 2)
-                    .ToDictionary(
-                        i => argsList[2 * i],        // key
-                        i => argsList[2 * i + 1]     // value
-                    )    
-            );
-        }
-        else LogWarning("Undefined command!");
     }
 
     private void HandleBackspaceBtn()
@@ -178,7 +166,28 @@ public class CommandPanel : ICommandPanel
             _inputIndex = 0;
         }
     }
-    
+
+    public void ExecuteTextCommand(string text)
+    {
+        LogInfo("Executing command: " + text);
+        
+        var args =  text.Split(' ');
+        
+        if (_nameCommandDict.TryGetValue(args[0], out var command))
+        {
+            var argsList = args.Skip(1).ToList(); 
+            
+            command.Execute(
+                Enumerable.Range(0, argsList.Count / 2)
+                    .ToDictionary(
+                        i => argsList[2 * i],        // key
+                        i => argsList[2 * i + 1]     // value
+                    )    
+            );
+        }
+        else LogWarning("Undefined command!");
+    }
+
     public void ShowMessageAction(Action printAction)
     {
         ClearInputView();
@@ -256,5 +265,13 @@ public class CommandPanel : ICommandPanel
             }
             else LogWarning("Undefined command!");
         }
+    }
+
+    private void SetupEnvironmentVariables()
+    {
+        _messageLine = Console.CursorTop;
+        _inputCursorPos.X = InputCursorPosYOffset;
+        _inputCursorPos.Y = Console.BufferHeight - 1;
+        _inputIndex = 0;
     }
 }

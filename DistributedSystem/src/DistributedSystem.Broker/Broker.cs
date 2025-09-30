@@ -73,9 +73,10 @@ public class Broker : IBroker
             {
                 _logger.LogInfo($"Socket <{client.RemoteEndPoint}> authenticated as <{message.Body}>.");
                 
-                _idSocketDict.TryAdd(message.Body, client);
+                if(!_idSocketDict.TryAdd(message.Body, client)) _idSocketDict[message.Body] = client;
                 
-                _ = SendMessageAsync(client, new Message { Code = MessageCode.Ok, Body = "I see you (-_-)" });
+                await SendMessageAsync(client, new Message { Code = MessageCode.Ok, Body = "Authentication succeeded. I see you (-_-)." });
+                _ = HandleUnsentMsgAsync(client, message.Body);
                 _ = HandleClientAsync(client, message.Body, ct);
             }
             else
@@ -93,8 +94,6 @@ public class Broker : IBroker
     
     private async Task HandleClientAsync(Socket client, string clientId, CancellationToken ct)
     {
-        await HandleUnsentMsgAsync(client, clientId);
-        
         while (!ct.IsCancellationRequested && client.Connected)
         {
             try
@@ -120,6 +119,11 @@ public class Broker : IBroker
             {
                 _logger.LogInfo($"Send unsent message to <{clientId}>: {message.Body}");
                 await SendMessageAsync(client, message);
+                
+                // Here seems to arise a bug.
+                // Messages sometimes are sent too fast so they are split together and JsonCodec cannot deserialize it.
+                // Delay is a temp solution. Or not =) ?
+                await Task.Delay(10);
             }
         }
         
@@ -158,15 +162,16 @@ public class Broker : IBroker
     { 
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
-            _pubSubDict[publisherIdentifier].TryAdd(subscriberId, true);
-            
-            _logger.LogInfo($"Client <{subscriberId}> subscribed to <{publisherAlias}>.");
-
-            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
+            if (_pubSubDict[publisherIdentifier].TryAdd(subscriberId, true))
+            {
+                _logger.LogInfo($"Client <{subscriberId}> subscribed to <{publisherAlias}>.");
+                _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok, Body = "Subscription succeeded"});
+            }
+            else _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok, Body = "Already subscribed" });
         }
         else
         {
-            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail, Body = "Subscription failed" });
         }
     }
     
@@ -174,15 +179,18 @@ public class Broker : IBroker
     {
         if (_idAliasDict.TryGetValue(publisherAlias, out var publisherIdentifier))
         {
-            _pubSubDict[publisherIdentifier].TryRemove(subscriberId,  out _);
+            if (_pubSubDict[publisherIdentifier].TryRemove(subscriberId, out _))
+            {
+                _logger.LogInfo($"Client <{subscriberId}> unsubscribed from <{publisherAlias}>.");
+                _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok, Body = "Unsubscription succeeded" });
+            }
+            else _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok, Body = "Not subscribed to this publisher" });
             
-            _logger.LogInfo($"Client <{subscriberId}> unsubscribed from <{publisherAlias}>.");
             
-            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Ok });
         }
         else
         {
-            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail });
+            _ = SendMessageAsync(_idSocketDict[subscriberId], new Message { Code = MessageCode.Fail, Body = "Unsubscription succeeded" });
         }
     }
     
@@ -194,7 +202,7 @@ public class Broker : IBroker
             
             _logger.LogInfo($"Client <{publisherId}> registered as publisher <{alias}>.");
             
-            _ = SendMessageAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Ok });
+            _ = SendMessageAsync(_idSocketDict[publisherId], new Message { Code = MessageCode.Ok, Body = "Publisher alias registration succeeded" });
         }
         else
         {
