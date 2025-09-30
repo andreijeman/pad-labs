@@ -25,15 +25,13 @@ public class Client : IClient
         try
         {
             await Socket.ConnectAsync(args.IpAddress, args.Port);
+            Logger.LogInfo($"Client connected to <{args.IpAddress}:{args.Port}>");
+            _ = ReceiveMessagesAsync();
         }
         catch (Exception e)
         {
             Logger.LogError(e.Message);
-            return;
         }
-        
-        Logger.LogInfo($"Client connected to <{args.IpAddress}:{args.Port}>");
-        _ = ReceiveMessagesAsync();
     }
 
     public Task AuthenticateAsync(AuthenticationArgs args)
@@ -60,7 +58,7 @@ public class Client : IClient
             try
             {
                 var message = await Postman.ReceivePacketAsync(Socket);
-                Logger.LogInfo($"Received message: Code[{message.Code}] Body[{message.Body}]");
+                Logger.LogInfo($"Received message: Code[ {message.Code} ] Body[ {message.Body} ]");
                 MessageReceived?.Invoke(this, message);
             }
             catch (Exception e)

@@ -13,4 +13,14 @@ panel.AddCommand(new AuthenticateCommand(panel, publisher));
 panel.AddCommand(new RegisterPublisherCommand(panel, publisher));
 panel.AddCommand(new PublishCommand(panel, publisher));
 
-panel.Start();
+_ = panel.StartAsync();
+
+// Automated connection and setup
+panel.ExecuteTextCommand($"conn -i {NetworkHelper.GetLocalIPv4()} -p 7777");
+panel.ExecuteTextCommand($"auth -u publisher");
+panel.ExecuteTextCommand($"reg -p publisher");
+
+panel.LogInfo("Use command [pub -m <message>] to publish messages.");
+
+await Task.Delay(-1);
+

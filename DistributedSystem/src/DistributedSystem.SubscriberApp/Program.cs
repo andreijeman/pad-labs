@@ -16,8 +16,18 @@ subscriber.MessageReceived += (sender, message) =>
 {
     panel.ShowMessageAction(() =>
     {
-        Console.WriteLine("Received message: " + message.Body);
+        if(message.Code == MessageCode.Publish) 
+            Console.WriteLine("Publication: " + message.Body);
     });
 };
 
-panel.Start();
+_ = panel.StartAsync();
+
+// Automated connection and setup
+panel.ExecuteTextCommand($"conn -i {NetworkHelper.GetLocalIPv4()} -p 7777");
+panel.ExecuteTextCommand("auth -u subscriber");
+panel.ExecuteTextCommand("sub -p publisher");
+
+panel.LogInfo("Use command [sub -p <publisher-name>] to subscribe to publisher.");
+
+await Task.Delay(-1);

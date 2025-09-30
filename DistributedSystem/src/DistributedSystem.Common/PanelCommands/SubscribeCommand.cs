@@ -21,12 +21,14 @@ public class SubscribeCommand : PanelCommandBase
         }.Build();
     }
 
-    public override async Task Execute(Dictionary<string, string> args)
+    public override Task Execute(Dictionary<string, string> args)
     {
         if (args.TryGetValue("-p", out var publisher))
         {
-            await _subscriber.Subscribe(publisher);
+            _ = _subscriber.Subscribe(publisher);
         }
         else Panel.LogWarning("Invalid command args");
+        
+        return Task.CompletedTask;
     }
 }
