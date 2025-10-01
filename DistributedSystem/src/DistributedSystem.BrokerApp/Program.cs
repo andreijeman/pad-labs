@@ -11,8 +11,8 @@ panel.AddCommand(new StartBrokerCommand(panel, broker));
 
 _ = panel.StartAsync();
 
-// Automated connection and setup
-panel.ExecuteTextCommand($"start -i {NetworkHelper.GetLocalIPv4()} -p 7777 -m 8 -d 50");
+// Uncomment for Automated Setup
+// panel.ExecuteTextCommand($"start -i {NetworkHelper.GetLocalIPv4()} -p 7777 -m 8 -d 50");
 
 await Task.Delay(-1);
 

@@ -121,9 +121,9 @@ public class Broker : IBroker
                 await SendMessageAsync(client, message);
                 
                 // Here seems to arise a bug.
-                // Messages sometimes are sent too fast so they are split together and JsonCodec cannot deserialize it.
+                // Messages sometimes are sent too fast so they are glued together and JsonCodec cannot deserialize it.
                 // Delay is a temp solution. Or not =) ?
-                await Task.Delay(10);
+                await Task.Delay(50);
             }
         }
         

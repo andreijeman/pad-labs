@@ -23,11 +23,11 @@ subscriber.MessageReceived += (sender, message) =>
 
 _ = panel.StartAsync();
 
-// Automated connection and setup
-panel.ExecuteTextCommand($"conn -i {NetworkHelper.GetLocalIPv4()} -p 7777");
-panel.ExecuteTextCommand("auth -u subscriber");
-panel.ExecuteTextCommand("sub -p publisher");
-
-panel.LogInfo("Use command [sub -p <publisher-name>] to subscribe to publisher.");
+// Uncomment for Automated Connection & Setup
+// panel.ExecuteTextCommand($"conn -i {NetworkHelper.GetLocalIPv4()} -p 7777");
+// panel.ExecuteTextCommand("auth -u subscriber");
+// panel.ExecuteTextCommand("sub -p publisher");
+//
+// panel.LogInfo("Use command [sub -p <publisher-name>] to subscribe to publisher.");
 
 await Task.Delay(-1);
