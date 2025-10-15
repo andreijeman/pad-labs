@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "6GI8CbGMPxl2aNWQTOIz1hiLOPsf48+K59LyuhH6Ag8=",
+  "Source": "GrpcDS.Broker",
+  "BasePath": "_content/GrpcDS.Broker",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

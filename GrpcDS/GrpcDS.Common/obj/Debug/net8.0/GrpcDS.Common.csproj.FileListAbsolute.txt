@@ -1,0 +1,12 @@
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\bin\Debug\net8.0\GrpcDS.Common.deps.json
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\bin\Debug\net8.0\GrpcDS.Common.dll
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\bin\Debug\net8.0\GrpcDS.Common.pdb
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.csproj.AssemblyReference.cache
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.AssemblyInfoInputs.cache
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.AssemblyInfo.cs
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.csproj.CoreCompileInputs.cache
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.dll
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\refint\GrpcDS.Common.dll
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\GrpcDS.Common.pdb
+C:\Users\KramerOxxx\Desktop\GrpcDS\GrpcDS.Common\obj\Debug\net8.0\ref\GrpcDS.Common.dll
