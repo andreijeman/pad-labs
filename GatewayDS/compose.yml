@@ -1,0 +1,113 @@
+version: '3.9'
+
+services:
+
+  mongo-rs-1:
+    image: mongo:7
+    hostname: mongo-rs-1
+    container_name: mongo-rs-1
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27021:27017"
+    volumes:
+      - mongo_rs1_data:/data/db
+
+  mongo-rs-2:
+    image: mongo:7
+    hostname: mongo-rs-2
+    container_name: mongo-rs-2
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27022:27017"
+    volumes:
+      - mongo_rs2_data:/data/db
+
+  mongo-rs-3:
+    image: mongo:7
+    hostname: mongo-rs-3
+    container_name: mongo-rs-3
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27023:27017"
+    volumes:
+      - mongo_rs3_data:/data/db
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      - mongo-rs-1
+      - mongo-rs-2
+      - mongo-rs-3
+    entrypoint: >
+      bash -c "
+        sleep 5;
+        mongosh --host mongo-rs-1:27017 --eval '
+          rs.initiate({
+            _id: \"rs0\",
+            members: [
+              { _id: 0, host: \"mongo-rs-1:27017\" },
+              { _id: 1, host: \"mongo-rs-2:27017\" },
+              { _id: 2, host: \"mongo-rs-3:27017\" }
+            ]
+          });
+          rs.status();
+        ';
+        sleep 3;
+      "
+
+  api-1:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8081
+      - MongoDbSettings__DefaultConnection=mongodb://mongo-rs-1:27017,mongo-rs-2:27017,mongo-rs-3:27017/?replicaSet=rs0&readPreference=primaryPreferred&w=majority
+      - MongoDbSettings__DatabaseName=appdb
+    depends_on:
+      - mongo-init
+
+  api-2:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8082
+      - MongoDbSettings__DefaultConnection=mongodb://mongo-rs-1:27017,mongo-rs-2:27017,mongo-rs-3:27017/?replicaSet=rs0&readPreference=primaryPreferred&w=majority
+      - MongoDbSettings__DatabaseName=appdb
+    depends_on:
+      - mongo-init
+
+  api-3:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8083
+      - MongoDbSettings__DefaultConnection=mongodb://mongo-rs-1:27017,mongo-rs-2:27017,mongo-rs-3:27017/?replicaSet=rs0&readPreference=primaryPreferred&w=majority
+      - MongoDbSettings__DatabaseName=appdb
+    depends_on:
+      - mongo-init
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Gateway/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:5000
+    depends_on:
+      - api-1
+      - api-2
+      - api-3
+
+volumes:
+  mongo_rs1_data:
+  mongo_rs2_data:
+  mongo_rs3_data:
